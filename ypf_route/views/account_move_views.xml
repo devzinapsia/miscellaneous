@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_server_ypf_import_wizard" model="ir.actions.act_window">
+        <field name="name">Nueva factura YPF Ruta</field>
+        <field name="res_model">ypf.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list,form</field>
+    </record>
+
+    </odoo>

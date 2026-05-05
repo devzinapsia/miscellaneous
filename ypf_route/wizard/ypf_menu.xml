@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_ypf_import_wizard"
+        name="Nueva factura de YPF"
+        action="action_ypf_import_wizard"
+        parent="account.menu_finance_payables"
+        sequence="99"/>
+</odoo>
