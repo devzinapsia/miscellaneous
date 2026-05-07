@@ -29,14 +29,15 @@ class YpfImportWizard(models.TransientModel):
 
     use_analytic_domain = fields.Boolean(string='Usa cuenta analítica', default=True)
 
-    # Nombres exactos de impuestos fijos en Odoo
+    # Impuestos fijos que vienen del Excel — se sacan de tax_ids de las líneas
+    # y se inyectan directamente al pie via line_ids con tax_line_id
     FIXED_TAX_NAMES = ['ITC', 'ICO2', 'Tasa vial']
 
-    # Mapeo columna Excel -> nombre impuesto en Odoo
+    # Mapeo columna Excel -> nombre exacto del impuesto en Odoo
     TAX_COLUMN_MAP = {
-        'IMP COMB LIQ': 'ITC',
         'IMP CO2':      'ICO2',
         'TASA VIAL':    'Tasa vial',
+        'IMP COMB LIQ': 'ITC',
     }
 
     @api.model
@@ -63,7 +64,7 @@ class YpfImportWizard(models.TransientModel):
         return df[mask].reset_index(drop=True)
 
     def _get_product_taxes(self, product):
-        """Retorna solo los impuestos NO fijos (ej: IVA 21%) del producto."""
+        """Retorna solo los impuestos que NO son fijos del Excel (IVA%, P.IIBB, Perc IVA, etc)."""
         if not product:
             return []
         taxes = product.supplier_taxes_id.filtered(
@@ -71,16 +72,16 @@ class YpfImportWizard(models.TransientModel):
         )
         return taxes.ids
 
-    def _build_fixed_tax_lines(self, df, col_total):
+    def _build_fixed_tax_move_lines(self, df, move):
         """
-        Calcula el total de cada impuesto fijo desde el Excel y
-        retorna líneas de factura listas para agregar al pie.
-        Un solo renglón por impuesto, con el total consolidado.
+        Inyecta una línea de impuesto fijo por cada columna del Excel (ICO2, Tasa vial, ITC)
+        directamente en move.line_ids usando tax_line_id, tal como lo hace Odoo internamente.
+        Un solo renglón por impuesto con el total consolidado del Excel.
         """
-        lines = []
         for col, tax_name in self.TAX_COLUMN_MAP.items():
             if col not in df.columns:
                 continue
+
             total = pd.to_numeric(df[col], errors='coerce').fillna(0).sum()
             if total <= 0:
                 continue
@@ -92,7 +93,7 @@ class YpfImportWizard(models.TransientModel):
             if not tax:
                 continue
 
-            # Obtener la cuenta contable del impuesto
+            # Cuenta contable del impuesto (repartition line tipo 'tax')
             account = tax.invoice_repartition_line_ids.filtered(
                 lambda l: l.repartition_type == 'tax'
             ).mapped('account_id')[:1]
@@ -100,14 +101,19 @@ class YpfImportWizard(models.TransientModel):
             if not account:
                 continue
 
-            lines.append((0, 0, {
+            # Crear la línea de impuesto directamente en el move
+            # balance negativo = debe (gasto/impuesto en factura de proveedor)
+            self.env['account.move.line'].with_context(
+                check_move_validity=False
+            ).create({
+                'move_id': move.id,
                 'name': tax_name,
-                'quantity': 1.0,
-                'price_unit': float(total),
                 'account_id': account.id,
-                'tax_ids': [],
-            }))
-        return lines
+                'tax_line_id': tax.id,
+                'debit': float(total),
+                'credit': 0.0,
+                'exclude_from_invoice_tab': True,
+            })
 
     def action_confirm(self):
         self.ensure_one()
@@ -182,9 +188,7 @@ class YpfImportWizard(models.TransientModel):
         if not invoice_lines:
             raise UserError("No se encontraron líneas válidas.")
 
-        # Agregar líneas de impuestos fijos al pie (una por impuesto, total consolidado)
-        invoice_lines += self._build_fixed_tax_lines(df, col_total)
-
+        # Crear la factura con las líneas de productos
         move = self.env['account.move'].with_context(ctx).create({
             'move_type': 'in_invoice',
             'partner_id': self.partner_id.id,
@@ -195,6 +199,12 @@ class YpfImportWizard(models.TransientModel):
             'l10n_latam_document_number': self.document_number,
             'invoice_line_ids': invoice_lines,
         })
+
+        # Inyectar líneas de impuestos fijos del Excel al pie (ICO2, Tasa vial, ITC)
+        self._build_fixed_tax_move_lines(df, move)
+
+        # Recomputar totales para que el pie quede correcto
+        move._recompute_dynamic_lines(recompute_all_taxes=True)
 
         # Adjuntar el Excel original a la factura
         self.env['ir.attachment'].create({
@@ -220,7 +230,7 @@ class YpfImportWizard(models.TransientModel):
             'name': product_name,
             'quantity': 1.0,
             'price_unit': price,
-            # Solo impuestos NO fijos (IVA porcentual) — los fijos van al pie consolidados
+            # Solo impuestos NO fijos del Excel — IVA%, P.IIBB, Perc IVA quedan
             'tax_ids': [(6, 0, self._get_product_taxes(product))],
         }
         if self.use_analytic_domain:
