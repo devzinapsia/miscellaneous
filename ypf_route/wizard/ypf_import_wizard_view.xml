@@ -17,7 +17,8 @@
                         </group>
                     </group>
                     <group>
-                        <field name="excel_file"/>
+                        <field name="excel_file" filename="file_name"/>
+                        <field name="file_name" invisible="1"/>
                         <field name="group_type" widget="radio"/>
                         <field name="use_analytic_domain"/>
                     </group>
@@ -47,5 +48,4 @@
             </xpath>
         </field>
     </record>
-
 </odoo>
