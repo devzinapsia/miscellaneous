@@ -203,7 +203,7 @@ class YpfImportWizard(models.TransientModel):
         self._build_fixed_tax_move_lines(df, move)
 
         # Recomputar totales para que el pie quede correcto
-        move._recompute_dynamic_lines(recompute_all_taxes=True)
+        move.with_context(check_move_validity=False)._compute_tax_totals()
 
         # Adjuntar el Excel original a la factura
         self.env['ir.attachment'].create({
