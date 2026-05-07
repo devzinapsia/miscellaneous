@@ -64,12 +64,10 @@ class YpfImportWizard(models.TransientModel):
         return df[mask].reset_index(drop=True)
 
     def _get_product_taxes(self, product):
-        """Retorna solo los impuestos NO fijos del Excel (IVA%, P.IIBB, Perc IVA, etc)."""
+        """Retorna TODOS los impuestos del producto — los fijos se consolidan via tax_override_data."""
         if not product:
             return []
-        return product.supplier_taxes_id.filtered(
-            lambda t: t.name not in self.FIXED_TAX_NAMES
-        ).ids
+        return product.supplier_taxes_id.ids
 
     def _build_tax_override_data(self, df):
         """
