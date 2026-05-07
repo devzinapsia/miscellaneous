@@ -112,7 +112,6 @@ class YpfImportWizard(models.TransientModel):
                 'tax_line_id': tax.id,
                 'debit': float(total),
                 'credit': 0.0,
-                'exclude_from_invoice_tab': True,
             })
 
     def action_confirm(self):
