@@ -20,7 +20,7 @@ class YpfImportWizard(models.TransientModel):
     document_number = fields.Char(string='Número de Documento')
     
     excel_file = fields.Binary(string='Subir planilla excel', required=True)
-    file_name = fields.Char(string='Nombre del archivo') # Para el adjunto
+    file_name = fields.Char(string='Nombre del archivo')
 
     group_type = fields.Selection([
         ('line', 'Abierto por Renglon'),
@@ -42,6 +42,16 @@ class YpfImportWizard(models.TransientModel):
             res['l10n_latam_document_type_id'] = doc_type.id
         return res
 
+    def _filter_valid_rows(self, df, col_product):
+        """Filtra filas con PRODUCTO válido, eliminando totales y filas vacías del Excel."""
+        mask = (
+            df[col_product].notna() &
+            (df[col_product] != 0) &
+            (df[col_product].astype(str).str.strip() != '') &
+            (df[col_product].astype(str).str.strip() != '0')
+        )
+        return df[mask].reset_index(drop=True)
+
     def action_confirm(self):
         self.ensure_one()
         ctx = self.env.context.copy()
@@ -51,7 +61,6 @@ class YpfImportWizard(models.TransientModel):
             decoded_data = base64.b64decode(self.excel_file)
             df = pd.read_excel(io.BytesIO(decoded_data), engine='openpyxl')
             df.columns = df.columns.str.strip()
-            # Limpieza básica de filas vacías al final
             df = df.dropna(how='all').reset_index(drop=True)
         except Exception as e:
             raise UserError("Error al procesar el archivo Excel: %s" % str(e))
@@ -62,12 +71,16 @@ class YpfImportWizard(models.TransientModel):
         col_dominio = 'IDENTIFICACION TARJETA'
         tax_columns = ['IVA', 'IMP CO2', 'TASA VIAL', 'IMP COMB LIQ']
 
+        # Filtrar filas de totales y vacías (PRODUCTO nulo = fila de total del Excel)
+        df = self._filter_valid_rows(df, col_product)
+
         if self.group_type == 'line':
             for _, row in df.iterrows():
                 total_row = float(row.get(col_total, 0) or 0)
                 taxes_sum = sum(float(row.get(tax, 0) or 0) for tax in tax_columns if tax in row)
                 price = total_row - taxes_sum
-                if price <= 0: continue
+                if price <= 0:
+                    continue
 
                 vals = self._prepare_line_vals(
                     product_name=str(row.get(col_product, '')).strip(), 
@@ -76,7 +89,7 @@ class YpfImportWizard(models.TransientModel):
                 )
                 invoice_lines.append((0, 0, vals))
         
-        else: # Agrupado por Producto
+        else:  # Agrupado por Producto
             df = df.fillna(0)
             available_tax_cols = [t for t in tax_columns if t in df.columns]
             grouped = df.groupby(col_product)[[col_total] + available_tax_cols].sum().reset_index()
@@ -85,22 +98,22 @@ class YpfImportWizard(models.TransientModel):
                 total_prod_group = float(row[col_total])
                 taxes_sum = sum(float(row.get(tax, 0)) for tax in available_tax_cols)
                 price = total_prod_group - taxes_sum
-                if price <= 0: continue
+                if price <= 0:
+                    continue
                 
                 distribution = {}
                 if self.use_analytic_domain:
-                    # Buscamos todas las líneas originales de este producto
                     sub_df = df[df[col_product] == row[col_product]]
                     for _, sub_row in sub_df.iterrows():
                         clean_pat = str(sub_row.get(col_dominio, '')).replace(" ", "").upper()
-                        if not clean_pat: continue
+                        if not clean_pat or clean_pat == '0':
+                            continue
                         
                         ana_acc = self.env['account.analytic.account'].search([
                             ('name', 'ilike', clean_pat + '%')
                         ], limit=1)
                         
                         if ana_acc:
-                            # Calculamos el peso proporcional de esta carga sobre el total del grupo
                             weight = (sub_row[col_total] / total_prod_group) * 100
                             distribution[str(ana_acc.id)] = distribution.get(str(ana_acc.id), 0) + weight
 
@@ -114,7 +127,6 @@ class YpfImportWizard(models.TransientModel):
         if not invoice_lines:
             raise UserError("No se encontraron líneas válidas.")
 
-        # Crear Factura
         move = self.env['account.move'].with_context(ctx).create({
             'move_type': 'in_invoice',
             'partner_id': self.partner_id.id,
@@ -126,9 +138,9 @@ class YpfImportWizard(models.TransientModel):
             'invoice_line_ids': invoice_lines,
         })
 
-        # --- PUNTO 1: Adjuntar archivo ---
+        # Adjuntar el Excel original a la factura
         self.env['ir.attachment'].create({
-            'name': self.file_name or 'YPF_Ruta.xlsx',
+            'name': self.file_name if self.file_name and self.file_name.strip() else 'YPF_Ruta.xlsx',
             'datas': self.excel_file,
             'res_model': 'account.move',
             'res_id': move.id,
@@ -157,7 +169,10 @@ class YpfImportWizard(models.TransientModel):
                 res['analytic_distribution'] = {str(k): round(v, 2) for k, v in analytic_dist.items()}
             elif domain:
                 clean_pat = str(domain).replace(" ", "").upper()
-                ana_acc = self.env['account.analytic.account'].search([('name', 'ilike', clean_pat + '%')], limit=1)
-                if ana_acc:
-                    res['analytic_distribution'] = {str(ana_acc.id): 100}
+                if clean_pat and clean_pat != '0':
+                    ana_acc = self.env['account.analytic.account'].search([
+                        ('name', 'ilike', clean_pat + '%')
+                    ], limit=1)
+                    if ana_acc:
+                        res['analytic_distribution'] = {str(ana_acc.id): 100}
         return res
