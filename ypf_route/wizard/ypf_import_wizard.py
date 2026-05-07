@@ -30,7 +30,7 @@ class YpfImportWizard(models.TransientModel):
     use_analytic_domain = fields.Boolean(string='Usa cuenta analítica', default=True)
 
     # Impuestos fijos que vienen del Excel — se sacan de tax_ids de las líneas
-    # y se inyectan directamente al pie via line_ids con tax_line_id
+    # y sus montos se sobreescriben via tax_override_data
     FIXED_TAX_NAMES = ['ITC', 'ICO2', 'Tasa vial']
 
     # Mapeo columna Excel -> nombre exacto del impuesto en Odoo
@@ -64,55 +64,34 @@ class YpfImportWizard(models.TransientModel):
         return df[mask].reset_index(drop=True)
 
     def _get_product_taxes(self, product):
-        """Retorna solo los impuestos que NO son fijos del Excel (IVA%, P.IIBB, Perc IVA, etc)."""
+        """Retorna solo los impuestos NO fijos del Excel (IVA%, P.IIBB, Perc IVA, etc)."""
         if not product:
             return []
-        taxes = product.supplier_taxes_id.filtered(
+        return product.supplier_taxes_id.filtered(
             lambda t: t.name not in self.FIXED_TAX_NAMES
-        )
-        return taxes.ids
+        ).ids
 
-    def _build_fixed_tax_move_lines(self, df, move):
+    def _build_tax_override_data(self, df):
         """
-        Inyecta una línea de impuesto fijo por cada columna del Excel (ICO2, Tasa vial, ITC)
-        directamente en move.line_ids usando tax_line_id, tal como lo hace Odoo internamente.
-        Un solo renglón por impuesto con el total consolidado del Excel.
+        Construye el dict tax_override_data para sobreescribir los montos
+        de ITC, ICO2 y Tasa vial con los totales del Excel.
+        Busca los IDs de impuestos dinámicamente.
+        Formato: { str(tax_id): {'amount': total, 'rate': 1} }
         """
+        override = {}
         for col, tax_name in self.TAX_COLUMN_MAP.items():
             if col not in df.columns:
                 continue
-
             total = pd.to_numeric(df[col], errors='coerce').fillna(0).sum()
             if total <= 0:
                 continue
-
             tax = self.env['account.tax'].search([
                 ('name', '=', tax_name),
                 ('type_tax_use', '=', 'purchase'),
             ], limit=1)
-            if not tax:
-                continue
-
-            # Cuenta contable del impuesto (repartition line tipo 'tax')
-            account = tax.invoice_repartition_line_ids.filtered(
-                lambda l: l.repartition_type == 'tax'
-            ).mapped('account_id')[:1]
-
-            if not account:
-                continue
-
-            # Crear la línea de impuesto directamente en el move
-            # balance negativo = debe (gasto/impuesto en factura de proveedor)
-            self.env['account.move.line'].with_context(
-                check_move_validity=False
-            ).create({
-                'move_id': move.id,
-                'name': tax_name,
-                'account_id': account.id,
-                'tax_line_id': tax.id,
-                'debit': float(total),
-                'credit': 0.0,
-            })
+            if tax:
+                override[str(tax.id)] = {'amount': float(total), 'rate': 1}
+        return override
 
     def action_confirm(self):
         self.ensure_one()
@@ -187,7 +166,10 @@ class YpfImportWizard(models.TransientModel):
         if not invoice_lines:
             raise UserError("No se encontraron líneas válidas.")
 
-        # Crear la factura con las líneas de productos
+        # Construir tax_override_data con los totales del Excel
+        tax_override = self._build_tax_override_data(df)
+
+        # Crear la factura
         move = self.env['account.move'].with_context(ctx).create({
             'move_type': 'in_invoice',
             'partner_id': self.partner_id.id,
@@ -197,13 +179,8 @@ class YpfImportWizard(models.TransientModel):
             'l10n_latam_document_type_id': self.l10n_latam_document_type_id.id,
             'l10n_latam_document_number': self.document_number,
             'invoice_line_ids': invoice_lines,
+            'tax_override_data': tax_override,
         })
-
-        # Inyectar líneas de impuestos fijos del Excel al pie (ICO2, Tasa vial, ITC)
-        self._build_fixed_tax_move_lines(df, move)
-
-        # Recomputar totales para que el pie quede correcto
-        move.with_context(check_move_validity=False)._compute_tax_totals()
 
         # Adjuntar el Excel original a la factura
         self.env['ir.attachment'].create({
@@ -230,6 +207,7 @@ class YpfImportWizard(models.TransientModel):
             'quantity': 1.0,
             'price_unit': price,
             # Solo impuestos NO fijos del Excel — IVA%, P.IIBB, Perc IVA quedan
+            # ITC, ICO2, Tasa vial se sobreescriben via tax_override_data
             'tax_ids': [(6, 0, self._get_product_taxes(product))],
         }
         if self.use_analytic_domain:
