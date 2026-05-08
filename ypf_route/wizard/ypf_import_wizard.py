@@ -174,9 +174,9 @@ class YpfImportWizard(models.TransientModel):
 
         # 2. Sobreescribir montos de ITC, ICO2 y Tasa vial con totales del Excel.
         #    Se hace en write() separado para que Odoo ya haya calculado los impuestos.
-        tax_override = self._build_tax_override_data(df)
-        if tax_override:
-            move.write({'tax_override_data': tax_override})
+        # tax_override = self._build_tax_override_data(df)
+        # if tax_override:
+        #     move.write({'tax_override_data': tax_override})
 
         # 3. Adjuntar el Excel original a la factura
         self.env['ir.attachment'].create({
