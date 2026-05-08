@@ -153,7 +153,7 @@ class YpfImportWizard(models.TransientModel):
                 vals = self._prepare_line_vals(
                     product_name=str(row[col_product]).strip(),
                     price=price,
-                    analytic_dist=distribution
+                    analytic_dist=distribution                   
                 )
                 invoice_lines.append((0, 0, vals))
 
@@ -203,7 +203,7 @@ class YpfImportWizard(models.TransientModel):
             'quantity': 1.0,
             'price_unit': price,
             # Todos los impuestos del producto — Odoo los consolida al pie
-            'tax_ids': [(6, 0, self._get_product_taxes(product))],
+            #'tax_ids': [(6, 0, self._get_product_taxes(product))],
         }
         if self.use_analytic_domain:
             if analytic_dist:
