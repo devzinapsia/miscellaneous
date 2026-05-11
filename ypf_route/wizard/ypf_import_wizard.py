@@ -29,10 +29,6 @@ class YpfImportWizard(models.TransientModel):
 
     use_analytic_domain = fields.Boolean(string='Usa cuenta analítica', default=True)
 
-    # Impuestos fijos que vienen del Excel — se sacan de tax_ids de las líneas
-    # y sus montos se sobreescriben via tax_override_data
-    FIXED_TAX_NAMES = ['ITC', 'ICO2', 'Tasa vial']
-
     # Mapeo columna Excel -> nombre exacto del impuesto en Odoo
     TAX_COLUMN_MAP = {
         'IMP CO2':      'ICO2',
@@ -64,34 +60,59 @@ class YpfImportWizard(models.TransientModel):
         return df[mask].reset_index(drop=True)
 
     def _get_product_taxes(self, product):
-        """Retorna solo los impuestos NO fijos del Excel (IVA%, P.IIBB, Perc IVA, etc)."""
+        """Retorna todos los impuestos del producto. Odoo los consolida al pie."""
         if not product:
             return []
-        return product.supplier_taxes_id.filtered(
-            lambda t: t.name not in self.FIXED_TAX_NAMES
-        ).ids
+        return product.supplier_taxes_id.ids
 
-    def _build_tax_override_data(self, df):
+    def _apply_fixed_tax_amounts(self, df, move):
         """
-        Construye el dict tax_override_data para sobreescribir los montos
-        de ITC, ICO2 y Tasa vial con los totales del Excel.
-        Busca los IDs de impuestos dinámicamente.
-        Formato: { str(tax_id): {'amount': total, 'rate': 1} }
+        Para cada impuesto fijo (ITC, ICO2, Tasa vial):
+        1. Elimina las líneas duplicadas del pie (una por cada artículo)
+        2. Deja solo la primera línea con el monto total del Excel
+        Replica el comportamiento de editar manualmente el pie de la factura.
         """
-        override = {}
+        # in_invoice es inbound → sign = -1
+        sign = -1 if move.is_inbound() else 1
+
         for col, tax_name in self.TAX_COLUMN_MAP.items():
             if col not in df.columns:
                 continue
+
             total = pd.to_numeric(df[col], errors='coerce').fillna(0).sum()
             if total <= 0:
                 continue
+
             tax = self.env['account.tax'].search([
                 ('name', '=', tax_name),
                 ('type_tax_use', '=', 'purchase'),
             ], limit=1)
-            if tax:
-                override[str(tax.id)] = {'amount': float(total), 'rate': 1}
-        return override
+            if not tax:
+                continue
+
+            # Buscar todas las líneas del pie correspondientes a este impuesto
+            tax_lines = move.line_ids.filtered(
+                lambda l, t=tax.id: l.tax_line_id.id == t
+            )
+            if not tax_lines:
+                continue
+
+            # Eliminar duplicados — dejar solo la primera línea
+            first_line = tax_lines[0]
+            duplicates = tax_lines[1:]
+            if duplicates:
+                duplicates.with_context(
+                    dynamic_unlink=True,
+                    check_move_validity=False,
+                ).unlink()
+
+            # Ajustar el monto de la primera línea al total del Excel
+            first_line.with_context(
+                check_move_validity=False
+            ).amount_currency = float(total) * sign
+
+        # Recomputar totales del move
+        move._compute_amount()
 
     def action_confirm(self):
         self.ensure_one()
@@ -166,10 +187,7 @@ class YpfImportWizard(models.TransientModel):
         if not invoice_lines:
             raise UserError("No se encontraron líneas válidas.")
 
-        # Construir tax_override_data con los totales del Excel
-        tax_override = self._build_tax_override_data(df)
-
-        # Crear la factura
+        # 1. Crear la factura con TODOS los impuestos en las líneas
         move = self.env['account.move'].with_context(ctx).create({
             'move_type': 'in_invoice',
             'partner_id': self.partner_id.id,
@@ -179,10 +197,12 @@ class YpfImportWizard(models.TransientModel):
             'l10n_latam_document_type_id': self.l10n_latam_document_type_id.id,
             'l10n_latam_document_number': self.document_number,
             'invoice_line_ids': invoice_lines,
-            'tax_override_data': tax_override,
         })
 
-        # Adjuntar el Excel original a la factura
+        # 2. Consolidar impuestos fijos: eliminar duplicados y setear monto del Excel
+        self._apply_fixed_tax_amounts(df, move)
+
+        # 3. Adjuntar el Excel original a la factura
         self.env['ir.attachment'].create({
             'name': self.file_name if self.file_name and self.file_name.strip() else 'YPF_Ruta.xlsx',
             'datas': self.excel_file,
@@ -206,8 +226,7 @@ class YpfImportWizard(models.TransientModel):
             'name': product_name,
             'quantity': 1.0,
             'price_unit': price,
-            # Solo impuestos NO fijos del Excel — IVA%, P.IIBB, Perc IVA quedan
-            # ITC, ICO2, Tasa vial se sobreescriben via tax_override_data
+            # Todos los impuestos del producto — Odoo los consolida al pie
             'tax_ids': [(6, 0, self._get_product_taxes(product))],
         }
         if self.use_analytic_domain:
