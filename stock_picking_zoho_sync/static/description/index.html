@@ -1,0 +1,23 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan">Stock Picking Zoho Sync</h2>
+        <h3 class="oe_slogan">Synchronize incoming stock receipts with Zoho</h3>
+    </div>
+    <div class="oe_row oe_spaced">
+        <p class="oe_mt32">
+            This module synchronizes validated incoming stock receipts
+            (Receipts) with Zoho through an external HTTP endpoint.
+        </p>
+        <ul>
+            <li>Receipts are flagged as pending synchronization as soon as
+                they are validated, without delaying the transaction.</li>
+            <li>A scheduled action, running every 10 minutes, sends all
+                pending receipts to Zoho.</li>
+            <li>The unit price sent for each line comes from the linked
+                purchase order line, with the product's cost price used
+                as a fallback for manual receipts without a purchase
+                order.</li>
+            <li>Failed sends are retried automatically on the next run.</li>
+        </ul>
+    </div>
+</section>

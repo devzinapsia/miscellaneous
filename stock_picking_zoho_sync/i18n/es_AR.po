@@ -1,0 +1,47 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_picking_zoho_sync
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: \n"
+"Language: es_AR\n"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.model.fields,field_description:stock_picking_zoho_sync.field_stock_picking__zoho_pending
+msgid "Zoho pending"
+msgstr "Pendiente Zoho"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.model.fields,field_description:stock_picking_zoho_sync.field_stock_picking__zoho_sent_date
+msgid "Zoho sent on"
+msgstr "Fecha de envío a Zoho"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.model.fields,field_description:stock_picking_zoho_sync.field_res_config_settings__zoho_sync_enabled
+#: model:ir.ui.view,arch_db:stock_picking_zoho_sync.res_config_settings_view_form
+msgid "Synchronize with Zoho"
+msgstr "Sincroniza con Zoho"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.model.fields,field_description:stock_picking_zoho_sync.field_res_config_settings__zoho_sync_url
+msgid "Zoho sync URL"
+msgstr "URL de sincronización con Zoho"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.model.fields,field_description:stock_picking_zoho_sync.field_res_config_settings__zoho_sync_token
+msgid "Zoho sync token"
+msgstr "Token de sincronización con Zoho"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.ui.view,arch_db:stock_picking_zoho_sync.res_config_settings_view_form
+msgid "Zoho"
+msgstr "Zoho"
+
+#. module: stock_picking_zoho_sync
+#: model:ir.ui.view,arch_db:stock_picking_zoho_sync.res_config_settings_view_form
+msgid "Send validated incoming receipts to Zoho automatically"
+msgstr "Envía las recepciones validadas a Zoho automáticamente"
