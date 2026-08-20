@@ -1,6 +1,6 @@
 {
     "name": "Stock Picking Zoho Sync",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Inventory/Inventory",
     "summary": "Synchronize validated incoming stock receipts with Zoho",
     "author": "Zinapsia",
