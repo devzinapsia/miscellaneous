@@ -9,13 +9,13 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="stock_picking_zoho_sync.enabled",
     )
     zoho_sync_url = fields.Char(
-        string="Zoho sync URL",
+        string="URL",
         config_parameter="stock_picking_zoho_sync.url",
     )
     # Stored for future use. The current integration example embeds the
     # "publickey" directly in the URL and does not send this as a header,
     # so it is not concatenated into any outgoing request yet.
     zoho_sync_token = fields.Char(
-        string="Zoho sync token",
+        string="Token",
         config_parameter="stock_picking_zoho_sync.token",
     )
