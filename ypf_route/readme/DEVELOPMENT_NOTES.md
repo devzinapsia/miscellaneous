@@ -302,6 +302,52 @@ productos simultáneamente. Confirmar con el cliente/contador cuál es el
 impuesto vigente antes de tocar esto; puede ser configuración duplicada
 sin limpiar, no necesariamente un bug del módulo.
 
+## 8. Impuestos fijos duplicados "por artículo" en la factura — no era un bug de código
+
+Después de subir el fix de la sección 7, el usuario reportó en producción
+que, al editar una factura ya importada y abrir "TAX: Add/update" en el
+pie, `ICO2` y `Tasa vial` seguían apareciendo **una vez por cada artículo**
+(ej. 6 líneas de "$1,00" en vez de un solo total), a diferencia de `IDC`,
+`ICL`, `ITC`, `Perc IVA` y `P. IIBB BA`, que siempre se ven como una sola
+línea consolidada.
+
+**Causa real**: es configuración del `account.tax`, no código. Cada
+impuesto tiene una línea de reparto (`account.tax.repartition.line`) de
+tipo `tax` con un flag **"Usar en cierre de impuestos"**
+(`use_in_tax_closing`). Cuando ese flag está **desactivado**, Odoo copia
+la distribución analítica de cada línea de producto a su línea de
+impuesto correspondiente, generando una línea de impuesto distinta por
+cada distribución analítica distinta (es decir, por vehículo/artículo).
+Cuando está **activado**, la línea de impuesto no lleva distribución
+analítica propia y todas las contribuciones se consolidan en una sola
+línea — sin importar cuántos vehículos/artículos haya detrás.
+
+`ICO2` y `Tasa vial` tenían ese flag desactivado; `IDC`, `ICL`, `ITC`,
+`Perc IVA` y `P. IIBB BA` lo tenían activado — de ahí la diferencia de
+comportamiento, pese a que en la pestaña "Opciones avanzadas" del
+impuesto se ven idénticos.
+
+**Dónde está el campo en la UI** (no es obvio): pestaña **Definición**
+del impuesto → grilla de líneas de distribución (donde se ve el % y la
+cuenta contable) → ícono de columnas (⚙) para mostrar la columna oculta
+**"Usar en cierre de impuestos"** → tildarla en la fila con Tipo =
+"Impuesto" (no en la fila "Base").
+
+**Resuelto** (2026-09-01, en la base real por el cliente/contador,
+directamente en la UI — no requirió cambios de código ni de datos vía
+módulo, porque estos impuestos los creó el contador a mano y no están
+definidos en ningún XML del repo): se activó "Usar en cierre de
+impuestos" en `ICO2` y `Tasa vial`, replicando la configuración de `ITC`.
+Verificado localmente (restaurando el backup) antes de indicarle el
+cambio al cliente: con el flag activado, `ICO2`/`Tasa vial` se comportan
+igual que `IDC`/`ICL`/`ITC` — una sola línea, siempre, incluso después de
+editar cualquier renglón de la factura.
+
+El fix de código de la sección 7 (no borrar líneas duplicadas) sigue
+siendo válido y necesario como red de seguridad — sin él, cualquier
+impuesto que en el futuro quede mal configurado así (`use_in_tax_closing`
+desactivado) volvería a generar el error de validación al editar.
+
 ## Estado general
 
 El módulo funciona (está en uso en producción) pero tiene varias
