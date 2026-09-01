@@ -68,9 +68,17 @@ class YpfImportWizard(models.TransientModel):
     def _apply_fixed_tax_amounts(self, df, move):
         """
         Para cada impuesto fijo (ITC, ICO2, Tasa vial):
-        1. Elimina las líneas duplicadas del pie (una por cada artículo)
-        2. Deja solo la primera línea con el monto total del Excel
-        Replica el comportamiento de editar manualmente el pie de la factura.
+        Ajusta el monto de todas las líneas del pie de ese impuesto para que
+        sumen exactamente el total del Excel, distribuyendo la diferencia en
+        proporción al peso actual de cada línea (por vehículo/artículo).
+
+        No se eliminan líneas: Odoo espera encontrar una línea de impuesto
+        por cada línea base que lo genera (una por vehículo/artículo cuando
+        difiere la distribución analítica). Si se borran esas líneas y se
+        deja el total forzado en una sola, un recómputo posterior de Odoo
+        (por ejemplo al editar el precio de otra línea de la factura) puede
+        desincronizar amount_currency/balance de esa línea y disparar el
+        constraint "check_amount_currency_balance_sign" al guardar.
         """
         # in_invoice es inbound → sign = -1
         sign = -1 if move.is_inbound() else 1
@@ -97,19 +105,24 @@ class YpfImportWizard(models.TransientModel):
             if not tax_lines:
                 continue
 
-            # Eliminar duplicados — dejar solo la primera línea
-            first_line = tax_lines[0]
-            duplicates = tax_lines[1:]
-            if duplicates:
-                duplicates.with_context(
-                    dynamic_unlink=True,
-                    check_move_validity=False,
-                ).unlink()
+            target_total = float(total) * sign
+            current_total = sum(tax_lines.mapped('amount_currency'))
+            if move.currency_id.is_zero(current_total):
+                continue
 
-            # Ajustar el monto de la primera línea al total del Excel
-            first_line.with_context(
+            # Distribuir el total del Excel en proporción al peso actual de
+            # cada línea; la última línea absorbe el redondeo para que la
+            # suma quede exacta.
+            remaining = target_total
+            for line in tax_lines[:-1]:
+                share = move.currency_id.round(
+                    line.amount_currency / current_total * target_total
+                )
+                line.with_context(check_move_validity=False).amount_currency = share
+                remaining -= share
+            tax_lines[-1].with_context(
                 check_move_validity=False
-            ).amount_currency = float(total) * sign
+            ).amount_currency = remaining
 
         # Recomputar totales del move
         move._compute_amount()

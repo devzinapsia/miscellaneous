@@ -1,6 +1,6 @@
 {
     "name": "YPF Ruta - Importación de Facturas",
-    "version": "19.0.1.0.1",
+    "version": "19.0.1.0.2",
     "category": "Accounting",
     "summary": "Importación automática de planillas YPF Ruta",
     "author": "Zinapsia",
