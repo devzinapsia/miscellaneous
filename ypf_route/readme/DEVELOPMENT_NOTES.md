@@ -333,20 +333,127 @@ cuenta contable) → ícono de columnas (⚙) para mostrar la columna oculta
 **"Usar en cierre de impuestos"** → tildarla en la fila con Tipo =
 "Impuesto" (no en la fila "Base").
 
-**Resuelto** (2026-09-01, en la base real por el cliente/contador,
-directamente en la UI — no requirió cambios de código ni de datos vía
-módulo, porque estos impuestos los creó el contador a mano y no están
-definidos en ningún XML del repo): se activó "Usar en cierre de
-impuestos" en `ICO2` y `Tasa vial`, replicando la configuración de `ITC`.
-Verificado localmente (restaurando el backup) antes de indicarle el
-cambio al cliente: con el flag activado, `ICO2`/`Tasa vial` se comportan
-igual que `IDC`/`ICL`/`ITC` — una sola línea, siempre, incluso después de
-editar cualquier renglón de la factura.
+**⚠️ Corrección — NO activar este flag, se revirtió.** En un primer
+momento se le indicó al cliente activar "Usar en cierre de impuestos" en
+`ICO2`/`Tasa vial` (2026-09-01) para eliminar la duplicación visual, y
+funcionó para eso. Pero investigando más a fondo apareció un efecto
+secundario real: ese mismo flag determina si el monto del impuesto se
+incluye en el **cierre periódico de impuestos** (Libro IVA / percepciones,
+`account_reports` de Enterprise — `enterprise/account_reports/models/
+account_generic_tax_report.py`, usa `repartition.use_in_tax_closing`
+para decidir qué se liquida contra AFIP).
+
+`ICO2` imputa a una cuenta de **gasto** ("Impuestos y tasas",
+`account_type=expense`) y `Tasa vial` a "Tasa vialidad"
+(`account_type=expense_direct_cost`) — son **costos reales, no créditos
+fiscales recuperables**. `ITC`/`IDC`/`ICL` en cambio imputan a "Pago a Cta
+Ley 23966" (`account_type=asset_current`, un pago a cuenta recuperable
+por ley) — por eso a esos SÍ les corresponde tener el flag activado, y a
+`ICO2`/`Tasa vial` **no**. El default que traía Odoo (flag apagado en
+ICO2/Tasa vial) era contablemente correcto. Se **revirtió** el cambio
+(el cliente lo hizo directo en la UI) — `ICO2`/`Tasa vial` volvieron a
+`use_in_tax_closing = False`.
+
+**No hay forma de resolver la duplicación visual únicamente por
+configuración** sin ese efecto secundario: en el código fuente de Odoo
+(`account_tax.py`), la condición que decide si se copia la distribución
+analítica a la línea de impuesto es exactamente
+`tax.analytic OR NOT use_in_tax_closing` — no hay una tercera opción.
+Se probó también limpiar `analytic_distribution` en los renglones ya
+creados (sin borrarlos): no alcanza, porque cada renglón ya es un
+registro separado en la base — limpiar un campo no fusiona filas, hace
+falta borrarlas, que es la operación insegura que causó el bug de la
+sección 7.
 
 El fix de código de la sección 7 (no borrar líneas duplicadas) sigue
-siendo válido y necesario como red de seguridad — sin él, cualquier
-impuesto que en el futuro quede mal configurado así (`use_in_tax_closing`
-desactivado) volvería a generar el error de validación al editar.
+siendo válido y necesario — sin él, cualquier factura con varios
+vehículos/artículos para un mismo impuesto de monto fijo puede volver a
+generar el error de validación al editar. La duplicación visual en el
+pie, en cambio, es esperable con `use_in_tax_closing=False` + distintas
+distribuciones analíticas por línea — no es un bug, es cómo Odoo
+prorratea el costo de ese impuesto por vehículo (igual que ya hace con el
+combustible). Ver sección 9 para la causa real de lo que parecía "el pie
+no suma bien".
+
+## 9. El "pie no suma bien" (ej. $83 en vez de $664.167) — bug de otro módulo (`account_invoice_tax`, ingadhoc), no de `ypf_route`
+
+Después de la sección 8, el cliente reportó que el **resumen del pie** de
+la factura mostraba un total chico y sin sentido (ej. "$83,00") para
+`ICO2`/`Tasa vial`, mientras que los **Apuntes contables** (Journal
+Items) mostraban los renglones individuales correctos (uno por vehículo,
+sumando bien al total real del Excel). Un F5 no lo arreglaba.
+
+**Causa raíz** (nada que ver con `ypf_route`): el botón **"TAX:
+Add/update"** / popup "Editar líneas de impuesto" no es de Odoo core —
+lo agrega el módulo `account_invoice_tax` de
+`ingadhoc/account-invoicing` (ya instalado en S-Train, se usa para
+ajustar impuestos de monto fijo en facturas de cualquier proveedor, no
+solo YPF). Ese módulo agrega un campo `tax_override_data` (JSON) en
+`account.move`, pensado para que un ajuste manual de impuesto
+"sobreviva" a futuras ediciones — recalculado automáticamente cada vez
+que la factura se resincroniza dinámicamente
+(`_sync_tax_lines`/`_apply_tax_overrides`).
+
+El popup lista **una fila por cada `account.move.line`** de ese impuesto
+(por eso se ve "duplicado por vehículo" ahí — es solo cómo arma la
+lista, no indica nada malo por sí solo). El bug está en
+`wizards/account_invoice_tax.py`, método `_save_overrides()`, que se
+ejecuta al apretar el botón **"Update"** del popup:
+
+```python
+for wizard_line in self.tax_line_ids.filtered(lambda l: l.tax_id.amount_type == "fixed"):
+    new_overrides[str(wizard_line.tax_id.id)] = {
+        "amount": wizard_line.amount,
+        ...
+    }
+```
+
+Como hay varias filas de wizard para el mismo `tax_id` (una por
+vehículo), este loop **pisa** la entrada del diccionario en cada
+iteración — se queda solo con el importe de la **última** fila
+procesada, no con la suma. Ese valor queda grabado en
+`tax_override_data` y, desde ese momento, **cada recómputo futuro de la
+factura fuerza ese único valor** (el de la última línea, no el total)
+como si fuera el total del impuesto — permanentemente, hasta que se
+limpie el campo. Por eso el F5 no soluciona nada: el servidor devuelve
+intencionalmente ese valor "congelado" vía
+`_compute_tax_totals()` (que, si `tax_override_data` no está vacío,
+ignora el cálculo normal de Odoo y usa el override).
+
+Confirmado en la base: `account.move` id 6001 (la primera factura que
+investigamos, sección 7) tiene grabado
+`tax_override_data = {"161": {"amount": 8904.09}, "174": {"amount":
+664168.17}, "176": {"amount": 5900656.58}, ...}` — quedó así porque en
+algún momento de las pruebas se apretó "Update" en ese popup.
+
+**Cómo se dispara**: apretar el botón **"Update"** del popup "Editar
+líneas de impuesto" en una factura donde un impuesto fijo tiene más de
+un renglón (varios vehículos). Solo mirar y cerrar con "Cancelar" no
+dispara nada.
+
+**Alcance de `account_invoice_tax`**: se evaluó desinstalarlo. No se
+hizo — es una herramienta de uso general del equipo contable (103
+facturas en la base tenían `tax_override_data` grabado al momento de
+revisar, de proveedores variados, no solo YPF; 102 posteadas —sin
+impacto contable real si se pierde el campo, el asiento ya quedó fijo—,
+1 en borrador). El único módulo que depende de él
+(`l10n_ar_import_bill`, importador de facturas AFIP/ARCA) ya estaba
+desinstalado en S-Train, así que tampoco había riesgo de arrastrar esa
+baja. Aun así, se prefirió no tocarlo: es más seguro limpiar
+puntualmente el campo en la factura afectada.
+
+**Mitigación acordada** (sin tocar código de terceros):
+1. En facturas YPF con varios vehículos, **no usar el botón "Update"**
+   del popup de impuestos — solo "Cancelar" si se abre para mirar.
+2. Para una factura ya "envenenada" (como la 6001), limpiar
+   `tax_override_data` (poner `False`) para que vuelva a calcularse
+   normal.
+
+Pendiente, no crítico: si se vuelve un problema recurrente, considerar
+parchear `_save_overrides()` en la copia local de `account_invoice_tax`
+para que **sume** (o promedie ponderado) las filas del wizard que
+comparten `tax_id`, en vez de pisarlas — o reportarlo upstream a
+ingadhoc.
 
 ## Estado general
 
