@@ -129,8 +129,13 @@ class EdenredImportWizard(models.TransientModel):
         return df
 
     def _filter_valid_rows(self, df):
-        col = self._EXCEL_COLUMN_PRODUCT
-        mask = df[col].notna() & (df[col].astype(str).str.strip() != '')
+        product_col = self._EXCEL_COLUMN_PRODUCT
+        price_col = self._EXCEL_COLUMN_PRICE
+        price_values = pd.to_numeric(df[price_col], errors='coerce').fillna(0)
+        mask = (
+            df[product_col].notna() & (df[product_col].astype(str).str.strip() != '') &
+            (price_values != 0)
+        )
         return df[mask].reset_index(drop=True)
 
     def _parse_row_datetime(self, row):

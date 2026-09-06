@@ -173,6 +173,33 @@ class TestEdenredImportWizard(TransactionCase):
         line = self._product_lines(move)
         self.assertEqual(line.product_id, self.product)
 
+    def test_zero_amount_row_excluded_from_invoice_lines(self):
+        rows = [
+            self._row(**{'No. Transacción': 'T-0001'}),
+            self._row(Neto=0.0, **{'No. Transacción': 'T-0002'}),
+        ]
+        wizard = self._create_wizard(rows)
+        move = self._confirm_and_get_move(wizard)
+        self.assertEqual(len(self._product_lines(move)), 1)
+
+    def test_zero_amount_row_excluded_from_odometer_processing(self):
+        # A vehicle whose only row has Neto == 0 must not get an odometer
+        # log at all - the row is dropped before any downstream processing.
+        rows = [
+            self._row(Placa='XY987ZZ', **{'No. Transacción': 'T-0001'}),
+            self._row(Neto=0.0, **{'No. Transacción': 'T-0002'}),
+        ]
+        wizard = self._create_wizard(rows)
+        self._confirm_and_get_move(wizard)
+        odometer_vehicle1 = self.env['fleet.vehicle.odometer'].search([
+            ('vehicle_id', '=', self.vehicle1.id),
+        ])
+        odometer_vehicle2 = self.env['fleet.vehicle.odometer'].search([
+            ('vehicle_id', '=', self.vehicle2.id),
+        ])
+        self.assertFalse(odometer_vehicle1)
+        self.assertTrue(odometer_vehicle2)
+
     # -- fallback account default ------------------------------------------
 
     def test_fallback_account_default_found_by_code(self):

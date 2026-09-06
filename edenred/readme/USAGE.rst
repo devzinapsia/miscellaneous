@@ -10,7 +10,9 @@ Expected Excel columns (exact names, case-sensitive)::
     No. Transacción, Último odómetro
 
 Rows where "Producto / Servicio" is empty (spreadsheet totals or blank
-rows) are ignored.
+rows), or where "Neto" is zero (or empty), are ignored - they don't
+generate an invoice line, and don't count towards vehicle driver/odometer
+matching either.
 
 Odometer idempotency
 ---------------------
