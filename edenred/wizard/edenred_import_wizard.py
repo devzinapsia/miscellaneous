@@ -59,7 +59,7 @@ class EdenredImportWizard(models.TransientModel):
         related='company_id.currency_id', readonly=True)
 
     journal_id = fields.Many2one(
-        'account.journal', string='Journal',
+        'account.journal', string='Journal', required=True,
         domain="[('type', '=', 'purchase'), ('company_id', '=', company_id)]")
 
     invoice_date = fields.Date(
@@ -154,7 +154,10 @@ class EdenredImportWizard(models.TransientModel):
         name = str(product_name).strip()
         if not name:
             return self.env['product.product']
-        return self.env['product.product'].search([('name', '=', name)], limit=1)
+        # Case-insensitive exact match ('=ilike' does not add wildcards): the
+        # Excel and the product catalog don't always agree on case (e.g.
+        # "Nafta Super" vs "NAFTA SUPER").
+        return self.env['product.product'].search([('name', '=ilike', name)], limit=1)
 
     def _match_vehicle(self, plate):
         clean_plate = str(plate).strip().upper()
@@ -296,7 +299,7 @@ class EdenredImportWizard(models.TransientModel):
         diff = self.subtotal - lines_total
         if abs(diff) > 0.01:
             nafta_super = self.env['product.product'].search(
-                [('name', '=', self._NAFTA_SUPER_PRODUCT_NAME)], limit=1)
+                [('name', '=ilike', self._NAFTA_SUPER_PRODUCT_NAME)], limit=1)
             if not nafta_super:
                 raise UserError(_(
                     'Could not find a product named "%s" to post the subtotal difference.',

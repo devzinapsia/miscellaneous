@@ -166,6 +166,12 @@ class TestEdenredImportWizard(TransactionCase):
         self.assertEqual(line.account_id, self.fallback_account)
         self.assertIn('Station 1', line.name)
 
+    def test_product_match_is_case_insensitive(self):
+        wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'gnc'})])
+        move = self._confirm_and_get_move(wizard)
+        line = self._product_lines(move)
+        self.assertEqual(line.product_id, self.product)
+
     # -- fallback account default ------------------------------------------
 
     def test_fallback_account_default_found_by_code(self):
@@ -295,6 +301,17 @@ class TestEdenredImportWizard(TransactionCase):
         wizard = self._create_wizard(rows)
         move = self._confirm_and_get_move(wizard)
         self.assertEqual(len(self._product_lines(move)), 1)
+
+    def test_nafta_super_match_is_case_insensitive(self):
+        # Regression: the catalog product is often stored as "NAFTA SUPER"
+        # while the constant is "Nafta Super" - must still match.
+        self.nafta_super.name = 'NAFTA SUPER'
+        rows = [self._row()]
+        wizard = self._create_wizard(rows, subtotal=1050.0)
+        move = self._confirm_and_get_move(wizard)
+        nafta_line = self._product_lines(move).filtered(
+            lambda l: l.product_id == self.nafta_super)
+        self.assertTrue(nafta_line)
 
     def test_subtotal_mismatch_adds_nafta_super_line_positive(self):
         rows = [self._row()]
