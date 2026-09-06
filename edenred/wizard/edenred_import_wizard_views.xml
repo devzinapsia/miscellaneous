@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_edenred_import_wizard_form" model="ir.ui.view">
+        <field name="name">edenred.import.wizard.form</field>
+        <field name="model">edenred.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="New Edenred bill">
+                <sheet>
+                    <group>
+                        <group string="Vendor information">
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="journal_id" options="{'no_create': True}"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Dates">
+                            <field name="invoice_date"/>
+                            <field name="date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Files">
+                            <field name="excel_file" filename="excel_filename"/>
+                            <field name="excel_filename" invisible="1"/>
+                            <field name="pdf_file" filename="pdf_filename"/>
+                            <field name="pdf_filename" invisible="1"/>
+                        </group>
+                        <group string="Amounts">
+                            <field name="subtotal"/>
+                            <field name="fallback_account_id" required="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_edenred_import_wizard" model="ir.actions.act_window">
+        <field name="name">New Edenred bill</field>
+        <field name="res_model">edenred.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

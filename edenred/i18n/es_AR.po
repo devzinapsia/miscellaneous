@@ -1,0 +1,179 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* edenred
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-06 18:07+0000\n"
+"PO-Revision-Date: 2026-09-06 18:07+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+"Language: es_AR\n"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__fallback_account_id
+msgid "Account for lines without vehicle"
+msgstr "Cuenta contable para líneas sin vehículo"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__date
+msgid "Accounting date"
+msgstr "Fecha contable"
+
+#. module: edenred
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "Amounts"
+msgstr "Importes"
+
+#. module: edenred
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: edenred
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: edenred
+#. odoo-python
+#: code:addons/edenred/wizard/edenred_import_wizard.py:0
+msgid "Could not find a product named \"%s\" to post the subtotal difference."
+msgstr "No se encontró un producto llamado \"%s\" para registrar la diferencia del subtotal."
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__currency_id
+msgid "Currency"
+msgstr "Moneda"
+
+#. module: edenred
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "Dates"
+msgstr "Fechas"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__display_name
+msgid "Display Name"
+msgstr "Nombre a mostrar"
+
+#. module: edenred
+#: model:ir.model,name:edenred.model_edenred_import_wizard
+msgid "Edenred Fuel Invoice Import Wizard"
+msgstr "Asistente de importación de facturas de combustible Edenred"
+
+#. module: edenred
+#. odoo-python
+#: code:addons/edenred/wizard/edenred_import_wizard.py:0
+msgid "Error reading the Excel file: %s"
+msgstr "Error al leer el archivo Excel: %s"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__excel_file
+msgid "Excel file"
+msgstr "Archivo Excel"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__excel_filename
+msgid "Excel filename"
+msgstr "Nombre del archivo Excel"
+
+#. module: edenred
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "Files"
+msgstr "Archivos"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__invoice_date
+msgid "Invoice date"
+msgstr "Fecha de factura"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__journal_id
+msgid "Journal"
+msgstr "Diario"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: edenred
+#: model:ir.actions.act_window,name:edenred.action_edenred_import_wizard
+#: model:ir.ui.menu,name:edenred.menu_edenred_import_wizard
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "New Edenred bill"
+msgstr "Nueva factura de Edenred"
+
+#. module: edenred
+#. odoo-python
+#: code:addons/edenred/wizard/edenred_import_wizard.py:0
+msgid "No valid rows were found in the Excel file."
+msgstr "No se encontraron filas válidas en el archivo Excel."
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__pdf_file
+msgid "PDF file"
+msgstr "Archivo PDF"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__pdf_filename
+msgid "PDF filename"
+msgstr "Nombre del archivo PDF"
+
+#. module: edenred
+#. odoo-python
+#: code:addons/edenred/wizard/edenred_import_wizard.py:0
+msgid "Please set an account for lines without a matched vehicle."
+msgstr "Configure una cuenta contable para las líneas sin vehículo vinculado."
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__subtotal
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#. module: edenred
+#. odoo-python
+#: code:addons/edenred/wizard/edenred_import_wizard.py:0
+msgid "The Excel file is missing the following expected columns: %s"
+msgstr "Al archivo Excel le faltan las siguientes columnas esperadas: %s"
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__partner_id
+msgid "Vendor"
+msgstr "Proveedor"
+
+#. module: edenred
+#: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
+msgid "Vendor information"
+msgstr "Información del proveedor"
