@@ -5,7 +5,7 @@ account, and click *Confirm*.
 
 Expected Excel columns (exact names, case-sensitive)::
 
-    Placa, Producto / Servicio, Precio neto, Fecha, hora, Conductor,
+    Placa, Producto / Servicio, Neto, Fecha, hora, Conductor,
     Código de conductor, Estación de servicio, Dirección Estación,
     No. Transacción, Último odómetro
 

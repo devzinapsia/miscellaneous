@@ -45,7 +45,7 @@ class TestEdenredL10nLatam(TransactionCase):
         row = {
             'Placa': 'AB123CD',
             'Producto / Servicio': 'GNC',
-            'Precio neto': 1000.0,
+            'Neto': 1000.0,
             'Fecha': date(2026, 8, 5),
             'hora': time(10, 0),
             'Conductor': 'Juan Perez',

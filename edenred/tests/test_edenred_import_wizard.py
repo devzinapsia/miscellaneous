@@ -84,7 +84,7 @@ class TestEdenredImportWizard(TransactionCase):
         base = {
             'Placa': 'AB123CD',
             'Producto / Servicio': 'GNC',
-            'Precio neto': 1000.0,
+            'Neto': 1000.0,
             'Fecha': date(2026, 8, 5),
             'hora': time(10, 0),
             'Conductor': 'Juan Perez',
@@ -115,7 +115,7 @@ class TestEdenredImportWizard(TransactionCase):
             'excel_filename': 'edenred.xlsx',
             'pdf_file': base64.b64encode(b'%PDF-1.4 test invoice'),
             'pdf_filename': 'edenred.pdf',
-            'subtotal': sum(r['Precio neto'] for r in rows),
+            'subtotal': sum(r['Neto'] for r in rows),
             'fallback_account_id': self.fallback_account.id,
         }
         vals.update(kwargs)
@@ -149,6 +149,7 @@ class TestEdenredImportWizard(TransactionCase):
         self.assertEqual(line.vehicle_id, self.vehicle1)
         self.assertEqual(line.product_id, self.product)
         self.assertEqual(line.account_id, self.vehicle_account)
+        self.assertEqual(line.price_unit, 1000.0)
 
     def test_vehicle_not_matched_uses_fallback_account(self):
         wizard = self._create_wizard([self._row(Placa='NOMATCH')])
@@ -266,6 +267,18 @@ class TestEdenredImportWizard(TransactionCase):
         self._confirm_and_get_move(wizard)
         self.vehicle1.invalidate_recordset()
         self.assertEqual(self.vehicle1.driver_id, self.employee.work_contact_id)
+
+    def test_fecha_string_is_parsed_day_first(self):
+        # Regression: the real Edenred export stores Fecha as "DD/MM/YYYY"
+        # text (Argentine convention). Without dayfirst=True, pandas parses
+        # it month-first and silently swaps day/month (11/08 -> Nov 8
+        # instead of Aug 11).
+        wizard = self._create_wizard([self._row(Fecha='11/08/2026', hora='14:30:00')])
+        self._confirm_and_get_move(wizard)
+        odometer = self.env['fleet.vehicle.odometer'].search([
+            ('vehicle_id', '=', self.vehicle1.id),
+        ])
+        self.assertEqual(odometer.date, date(2026, 8, 11))
 
     def test_reimport_same_vehicle_same_day_updates_odometer_not_duplicate(self):
         wizard1 = self._create_wizard([self._row(**{'Último odómetro': 100.0})])

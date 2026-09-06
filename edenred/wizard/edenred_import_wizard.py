@@ -21,7 +21,10 @@ class EdenredImportWizard(models.TransientModel):
 
     _EXCEL_COLUMN_PLATE = 'Placa'
     _EXCEL_COLUMN_PRODUCT = 'Producto / Servicio'
-    _EXCEL_COLUMN_PRICE = 'Precio neto'
+    # 'Precio neto' is always 0.0 in the real Edenred export (unused/dead
+    # column); 'Neto' is the actual net transaction amount (verified against
+    # a real file: Neto == Litros * "Neto unitario Lts").
+    _EXCEL_COLUMN_PRICE = 'Neto'
     _EXCEL_COLUMN_DATE = 'Fecha'
     _EXCEL_COLUMN_TIME = 'hora'
     _EXCEL_COLUMN_DRIVER = 'Conductor'
@@ -134,7 +137,11 @@ class EdenredImportWizard(models.TransientModel):
         fecha_val = row[self._EXCEL_COLUMN_DATE]
         hora_val = row[self._EXCEL_COLUMN_TIME]
 
-        fecha_ts = pd.to_datetime(fecha_val)
+        # dayfirst=True: the real Edenred export stores Fecha as DD/MM/YYYY
+        # text (Argentine convention), which pandas would otherwise parse as
+        # month-first and silently swap day/month (e.g. 11/8 -> November 8
+        # instead of August 11).
+        fecha_ts = pd.to_datetime(fecha_val, dayfirst=True)
         date_part = fecha_ts.date()
 
         if pd.isna(hora_val):
