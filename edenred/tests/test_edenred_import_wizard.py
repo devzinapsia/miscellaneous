@@ -93,6 +93,7 @@ class TestEdenredImportWizard(TransactionCase):
             'Dirección Estación': 'Main St 123',
             'No. Transacción': 'T-0001',
             'Último odómetro': 12345.0,
+            'Litros': 35.5,
         }
         base.update(overrides)
         return base
@@ -370,6 +371,50 @@ class TestEdenredImportWizard(TransactionCase):
         lines = self._product_lines(move)
         nafta_line = lines.filtered(lambda l: l.product_id == self.nafta_super)
         self.assertAlmostEqual(nafta_line.price_unit, -50.0, places=2)
+
+    # -- fleet service log --------------------------------------------------
+
+    def test_fleet_log_service_created_with_row_data(self):
+        wizard = self._create_wizard([self._row(Litros=35.5)])
+        move = self._confirm_and_get_move(wizard)
+        line = self._product_lines(move)
+
+        service = self.env['fleet.vehicle.log.services'].search([
+            ('account_move_line_id', '=', line.id),
+        ])
+        self.assertEqual(len(service), 1)
+        self.assertEqual(service.vehicle_id, self.vehicle1)
+        self.assertEqual(service.description, 'GNC 35.50 L')
+        self.assertEqual(service.date, date(2026, 8, 5))
+        self.assertEqual(service.notes, line.name)
+
+        odometer = self.env['fleet.vehicle.odometer'].search([
+            ('vehicle_id', '=', self.vehicle1.id),
+            ('date', '=', date(2026, 8, 5)),
+        ])
+        self.assertEqual(service.odometer_id, odometer)
+
+    def test_fleet_log_service_not_created_without_vehicle_match(self):
+        wizard = self._create_wizard([self._row(Placa='NOMATCH')])
+        move = self._confirm_and_get_move(wizard)
+        line = self._product_lines(move)
+        service = self.env['fleet.vehicle.log.services'].search([
+            ('account_move_line_id', '=', line.id),
+        ])
+        self.assertFalse(service)
+
+    def test_fleet_log_service_not_duplicated_when_posted(self):
+        # account_fleet's own _post() would auto-create a bare service log
+        # for any vehicle-matched line without one already - since we create
+        # ours upfront, it must skip that and not create a second one.
+        wizard = self._create_wizard([self._row()])
+        move = self._confirm_and_get_move(wizard)
+        move.action_post()
+        line = self._product_lines(move)
+        services = self.env['fleet.vehicle.log.services'].search([
+            ('account_move_line_id', '=', line.id),
+        ])
+        self.assertEqual(len(services), 1)
 
     # -- attachments -----------------------------------------------------
 

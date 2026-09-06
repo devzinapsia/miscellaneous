@@ -33,6 +33,7 @@ class EdenredImportWizard(models.TransientModel):
     _EXCEL_COLUMN_STATION_ADDRESS = 'Dirección Estación'
     _EXCEL_COLUMN_TRANSACTION = 'No. Transacción'
     _EXCEL_COLUMN_ODOMETER = 'Último odómetro'
+    _EXCEL_COLUMN_LITERS = 'Litros'
 
     _EXPECTED_COLUMNS = [
         _EXCEL_COLUMN_PLATE,
@@ -46,7 +47,12 @@ class EdenredImportWizard(models.TransientModel):
         _EXCEL_COLUMN_STATION_ADDRESS,
         _EXCEL_COLUMN_TRANSACTION,
         _EXCEL_COLUMN_ODOMETER,
+        _EXCEL_COLUMN_LITERS,
     ]
+
+    # Data record shipped by account_fleet, reused so services created here
+    # look the same as the ones account_fleet would auto-create at posting.
+    _FLEET_SERVICE_TYPE_XMLID = 'account_fleet.data_fleet_service_type_vendor_bill'
 
     excel_file = fields.Binary(string='Excel file', required=True)
     excel_filename = fields.Char(string='Excel filename')
@@ -207,6 +213,12 @@ class EdenredImportWizard(models.TransientModel):
             'transaction': str(row[self._EXCEL_COLUMN_TRANSACTION]).strip(),
         }
 
+    def _build_service_description(self, row):
+        product_name = str(row[self._EXCEL_COLUMN_PRODUCT]).strip()
+        liters = row[self._EXCEL_COLUMN_LITERS]
+        liters_value = 0.0 if pd.isna(liters) else float(liters)
+        return '%s %.2f L' % (product_name, liters_value)
+
     def _prepare_line_vals(self, row, row_datetime):
         product = self._match_product(row[self._EXCEL_COLUMN_PRODUCT])
         vehicle = self._match_vehicle(row[self._EXCEL_COLUMN_PLATE])
@@ -256,6 +268,44 @@ class EdenredImportWizard(models.TransientModel):
             self._upsert_odometer(
                 vehicle, row_datetime.date(), float(odometer_value), driver_partner)
 
+    def _create_fleet_log_services(self, move, line_extras):
+        """Create the per-line fleet.vehicle.log.services records ourselves,
+        with the actual row data, instead of letting account_fleet's own
+        _post() auto-create bare ones later. Linking account_move_line_id
+        here makes line.vehicle_log_service_ids non-empty, which is exactly
+        the condition account_fleet checks to skip its own auto-creation -
+        so no duplicates get created once the bill is posted.
+        """
+        service_type = self.env.ref(self._FLEET_SERVICE_TYPE_XMLID, raise_if_not_found=False)
+        if not service_type:
+            return
+
+        product_lines = move.invoice_line_ids.filtered(lambda l: l.display_type == 'product')
+        row_lines = product_lines[:len(line_extras)]
+
+        vals_list = []
+        for line, extra in zip(row_lines, line_extras):
+            vehicle = extra['vehicle']
+            if not vehicle:
+                continue
+            odometer = self.env['fleet.vehicle.odometer'].search([
+                ('vehicle_id', '=', vehicle.id),
+                ('date', '=', extra['row_datetime'].date()),
+            ], limit=1)
+            vals_list.append({
+                'vehicle_id': vehicle.id,
+                'service_type_id': service_type.id,
+                'vendor_id': self.partner_id.id,
+                'company_id': self.company_id.id,
+                'account_move_line_id': line.id,
+                'description': extra['service_description'],
+                'date': extra['row_datetime'].date(),
+                'notes': extra['notes'],
+                'odometer_id': odometer.id if odometer else False,
+            })
+        if vals_list:
+            self.env['fleet.vehicle.log.services'].create(vals_list)
+
     # -- Move creation -------------------------------------------------------
 
     def _prepare_move_vals(self):
@@ -299,11 +349,18 @@ class EdenredImportWizard(models.TransientModel):
 
         invoice_lines = []
         vehicle_rows = {}
+        line_extras = []
 
         for _index, row in df.iterrows():
             row_datetime = self._parse_row_datetime(row)
             vals, vehicle = self._prepare_line_vals(row, row_datetime)
             invoice_lines.append((0, 0, vals))
+            line_extras.append({
+                'vehicle': vehicle,
+                'row_datetime': row_datetime,
+                'service_description': self._build_service_description(row),
+                'notes': vals['name'],
+            })
             if vehicle:
                 vehicle_rows.setdefault(vehicle, []).append((row_datetime, row))
 
@@ -330,6 +387,7 @@ class EdenredImportWizard(models.TransientModel):
         move = self.env['account.move'].create(move_vals)
 
         self._sync_vehicles_drivers_and_odometers(vehicle_rows)
+        self._create_fleet_log_services(move, line_extras)
         self._attach_source_files(move)
 
         return {

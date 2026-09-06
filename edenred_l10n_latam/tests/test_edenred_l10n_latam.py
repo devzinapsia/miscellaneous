@@ -54,6 +54,7 @@ class TestEdenredL10nLatam(TransactionCase):
             'Dirección Estación': 'Main St 123',
             'No. Transacción': 'T-0001',
             'Último odómetro': 12345.0,
+            'Litros': 35.5,
         }
         df = pd.DataFrame({k: [v] for k, v in row.items()})
         buf = io.BytesIO()
