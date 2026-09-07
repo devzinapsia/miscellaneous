@@ -433,6 +433,21 @@ class EdenredImportWizard(models.TransientModel):
         self._set_tax_total(move, self._TAX_NAME_INTERNAL, internal_tax_net)
         move._compute_amount()
 
+    def _prepare_subtotal_difference_line_vals(self, diff):
+        return {
+            'name': _('Subtotal difference'),
+            'quantity': 1.0,
+            'price_unit': diff,
+            'account_id': self.subtotal_difference_account_id.id,
+        }
+
+    def _finalize_subtotal_difference_line(self, move):
+        """Hook for country-specific glue modules that need to adjust the
+        subtotal-difference line after the move is created (e.g. attaching
+        a VAT tax to satisfy a localization's own invoice validation). No-op
+        here: the base module doesn't assume any particular tax setup.
+        """
+
     # -- Move creation -------------------------------------------------------
 
     def _prepare_move_vals(self):
@@ -496,18 +511,14 @@ class EdenredImportWizard(models.TransientModel):
         lines_total = sum(vals['price_unit'] for _cmd, _id, vals in invoice_lines)
         diff = self.subtotal - lines_total
         if abs(diff) > 0.01:
-            invoice_lines.append((0, 0, {
-                'name': _('Subtotal difference'),
-                'quantity': 1.0,
-                'price_unit': diff,
-                'account_id': self.subtotal_difference_account_id.id,
-            }))
+            invoice_lines.append((0, 0, self._prepare_subtotal_difference_line_vals(diff)))
 
         move_vals = self._prepare_move_vals()
         move_vals['invoice_line_ids'] = invoice_lines
         move = self.env['account.move'].create(move_vals)
 
         self._apply_fixed_tax_totals(move)
+        self._finalize_subtotal_difference_line(move)
         self._sync_vehicles_drivers_and_odometers(vehicle_rows)
         self._create_fleet_log_services(move, line_extras)
         self._attach_source_files(move)
