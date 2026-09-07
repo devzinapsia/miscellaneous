@@ -433,19 +433,39 @@ class EdenredImportWizard(models.TransientModel):
         self._set_tax_total(move, self._TAX_NAME_INTERNAL, internal_tax_net)
         move._compute_amount()
 
-    def _prepare_subtotal_difference_line_vals(self, diff):
-        return {
+    def _prepare_subtotal_difference_line_vals(self, diff, taxes):
+        """`taxes` is the union of every real (product-matched) line's own
+        purchase taxes, attached here too so the difference line is taxed
+        the same way as the rest of the invoice (IVA, ITC, IDC, Impuestos
+        internos all included when the invoice's products carry them) -
+        it's still part of the taxable net amount, not an untaxed line.
+
+        This has to happen at build time, before the move is created: the
+        fixed-amount taxes (ITC/IDC/Impuestos internos) get their totals
+        redistributed across whatever lines carry them in
+        _apply_fixed_tax_totals, so the difference line needs to already
+        be one of those lines when that runs, not patched in afterwards
+        (which would silently add its own extra $1-per-tax contribution
+        on top of the totals we just set).
+        """
+        vals = {
             'name': _('Subtotal difference'),
             'quantity': 1.0,
             'price_unit': diff,
             'account_id': self.subtotal_difference_account_id.id,
         }
+        if taxes:
+            vals['tax_ids'] = [(6, 0, taxes.ids)]
+        return vals
 
     def _finalize_subtotal_difference_line(self, move):
-        """Hook for country-specific glue modules that need to adjust the
-        subtotal-difference line after the move is created (e.g. attaching
-        a VAT tax to satisfy a localization's own invoice validation). No-op
-        here: the base module doesn't assume any particular tax setup.
+        """Hook for country-specific glue modules that need to double-check
+        the subtotal-difference line after the move is created (e.g.
+        confirming a localization's own tax-group rule is satisfied). Only
+        ever ADD taxes here (never replace tax_ids outright) - the line
+        already carries the real lines' own taxes from
+        _prepare_subtotal_difference_line_vals by this point. No-op here:
+        the base module doesn't assume any particular tax setup.
         """
 
     # -- Move creation -------------------------------------------------------
@@ -494,6 +514,7 @@ class EdenredImportWizard(models.TransientModel):
         invoice_lines = []
         vehicle_rows = {}
         line_extras = []
+        line_taxes = self.env['account.tax']
 
         for _index, row in df.iterrows():
             row_datetime = self._parse_row_datetime(row)
@@ -507,11 +528,15 @@ class EdenredImportWizard(models.TransientModel):
             })
             if vehicle:
                 vehicle_rows.setdefault(vehicle, []).append((row_datetime, row))
+            product = self.env['product.product'].browse(vals['product_id'])
+            line_taxes |= product.supplier_taxes_id.filtered(
+                lambda t: t.type_tax_use == 'purchase')
 
         lines_total = sum(vals['price_unit'] for _cmd, _id, vals in invoice_lines)
         diff = self.subtotal - lines_total
         if abs(diff) > 0.01:
-            invoice_lines.append((0, 0, self._prepare_subtotal_difference_line_vals(diff)))
+            invoice_lines.append(
+                (0, 0, self._prepare_subtotal_difference_line_vals(diff, line_taxes)))
 
         move_vals = self._prepare_move_vals()
         move_vals['invoice_line_ids'] = invoice_lines

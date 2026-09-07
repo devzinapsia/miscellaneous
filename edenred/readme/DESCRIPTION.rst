@@ -26,7 +26,9 @@ For each row, the wizard:
   line, with the product/liters, date, odometer and full row description.
 * Reconciles the sum of all line amounts against the subtotal declared in
   the wizard, adding an adjustment line (no product, just an account) for
-  any difference.
+  any difference - carrying the same taxes as the real lines (IVA, ITC,
+  IDC, Impuestos internos when applicable), since it's still part of the
+  invoice's taxable net amount.
 * Forces the ITC, IDC and Impuestos internos fixed-amount tax lines to the
   totals declared in the wizard (see "Fixed-amount tax totals" below).
 

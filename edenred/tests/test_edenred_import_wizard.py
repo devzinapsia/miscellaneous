@@ -509,6 +509,9 @@ class TestEdenredImportWizard(TransactionCase):
         self.assertTrue(diff_line)
         self.assertAlmostEqual(diff_line.price_unit, 50.0, places=2)
         self.assertEqual(diff_line.account_id, self.subtotal_diff_account)
+        # Must carry the same 4 taxes as the real line (diesel_autos), not
+        # be left untaxed - it's still part of the taxable net amount.
+        self.assertEqual(diff_line.tax_ids, self.fuel_taxes)
 
     def test_subtotal_mismatch_adds_difference_line_negative(self):
         rows = [self._row()]

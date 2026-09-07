@@ -1,6 +1,6 @@
 {
     "name": "Edenred - Argentina",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Accounting",
     "summary": "Make the Edenred import wizard's subtotal-difference line AFIP-compliant",
     "author": "Zinapsia",
