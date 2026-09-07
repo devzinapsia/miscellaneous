@@ -28,6 +28,7 @@
                         <group string="Amounts">
                             <field name="subtotal"/>
                             <field name="fallback_account_id" required="1" options="{'no_create': True}"/>
+                            <field name="subtotal_difference_account_id" required="1" options="{'no_create': True}"/>
                         </group>
                     </group>
                 </sheet>

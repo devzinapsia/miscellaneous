@@ -15,9 +15,32 @@ class EdenredImportWizard(models.TransientModel):
     _description = 'Edenred Fuel Invoice Import Wizard'
 
     # Default code used only to look up a sensible default for
-    # `fallback_account_id` - not referenced anywhere else in the module.
+    # `fallback_account_id` / `subtotal_difference_account_id` - not
+    # referenced anywhere else in the module.
     _FALLBACK_ACCOUNT_DEFAULT_CODE = '5.3.1.01.148'
-    _NAFTA_SUPER_PRODUCT_NAME = 'Nafta Super'
+    _SUBTOTAL_DIFFERENCE_ACCOUNT_DEFAULT_CODE = '5.3.1.01.148'
+
+    # Technical name of the Studio "Edenred" tags field on product.product
+    # (Many2many to a tag model with a "name" field), used to match a row's
+    # "Producto / Servicio" text to one of the 6 catalog products below.
+    # TODO: confirm the real technical name in the client's database
+    # (Settings > Technical > Database Structure > Fields, model
+    # product.template, field label "Edenred") and update this constant -
+    # currently a placeholder.
+    _EDENRED_TAG_FIELD = 'x_studio_edenred'
+
+    # The 6-product catalog this client uses instead of matching by product
+    # name: which 3 apply depends on whether the row's plate matched a
+    # fleet.vehicle ("autos") or not ("maquinarias"); within those 3, the
+    # actual product is picked by matching the Excel's "Producto / Servicio"
+    # text against each candidate's Edenred tags. No tag match -> the
+    # category's own "Otros gastos no combustible" product.
+    _PRODUCT_CATEGORY_AUTOS_NAMES = [
+        'Diesel (autos)', 'Nafta (autos)', 'Otros gastos no combustible (autos)']
+    _PRODUCT_CATEGORY_MAQUINARIAS_NAMES = [
+        'Diesel (maquinarias)', 'Nafta (maquinarias)', 'Otros gastos no combustible (maquinarias)']
+    _PRODUCT_FALLBACK_AUTOS_NAME = 'Otros gastos no combustible (autos)'
+    _PRODUCT_FALLBACK_MAQUINARIAS_NAME = 'Otros gastos no combustible (maquinarias)'
 
     _EXCEL_COLUMN_PLATE = 'Placa'
     _EXCEL_COLUMN_PRODUCT = 'Producto / Servicio'
@@ -87,6 +110,11 @@ class EdenredImportWizard(models.TransientModel):
         'account.account', string='Account for lines without vehicle',
         domain="[('company_ids', 'in', company_id)]")
 
+    # Same reasoning as fallback_account_id re: not required=True here.
+    subtotal_difference_account_id = fields.Many2one(
+        'account.account', string='Target account for subtotal difference',
+        domain="[('company_ids', 'in', company_id)]")
+
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
@@ -113,6 +141,14 @@ class EdenredImportWizard(models.TransientModel):
             ], limit=1)
             if account:
                 res['fallback_account_id'] = account.id
+
+        if 'subtotal_difference_account_id' in fields_list and not res.get('subtotal_difference_account_id'):
+            account = self.env['account.account'].search([
+                ('code', '=', self._SUBTOTAL_DIFFERENCE_ACCOUNT_DEFAULT_CODE),
+                ('company_ids', 'in', company.id),
+            ], limit=1)
+            if account:
+                res['subtotal_difference_account_id'] = account.id
 
         return res
 
@@ -168,14 +204,27 @@ class EdenredImportWizard(models.TransientModel):
 
     # -- Matching --------------------------------------------------------
 
-    def _match_product(self, product_name):
-        name = str(product_name).strip()
-        if not name:
-            return self.env['product.product']
-        # Case-insensitive exact match ('=ilike' does not add wildcards): the
-        # Excel and the product catalog don't always agree on case (e.g.
-        # "Nafta Super" vs "NAFTA SUPER").
-        return self.env['product.product'].search([('name', '=ilike', name)], limit=1)
+    def _select_product(self, vehicle, product_name):
+        if vehicle:
+            candidate_names = self._PRODUCT_CATEGORY_AUTOS_NAMES
+            fallback_name = self._PRODUCT_FALLBACK_AUTOS_NAME
+        else:
+            candidate_names = self._PRODUCT_CATEGORY_MAQUINARIAS_NAMES
+            fallback_name = self._PRODUCT_FALLBACK_MAQUINARIAS_NAME
+
+        candidates = self.env['product.product'].search([('name', 'in', candidate_names)])
+        target = str(product_name).strip().upper()
+        if target:
+            for product in candidates:
+                tags = getattr(product, self._EDENRED_TAG_FIELD)
+                tag_names = {str(tag.name).strip().upper() for tag in tags}
+                if target in tag_names:
+                    return product
+
+        fallback_product = candidates.filtered(lambda p: p.name == fallback_name)
+        if not fallback_product:
+            raise UserError(_('Could not find the "%s" product.', fallback_name))
+        return fallback_product[:1]
 
     def _match_vehicle(self, plate):
         clean_plate = str(plate).strip().upper()
@@ -220,22 +269,22 @@ class EdenredImportWizard(models.TransientModel):
         return '%s %.2f L' % (product_name, liters_value)
 
     def _prepare_line_vals(self, row, row_datetime):
-        product = self._match_product(row[self._EXCEL_COLUMN_PRODUCT])
         vehicle = self._match_vehicle(row[self._EXCEL_COLUMN_PLATE])
+        product = self._select_product(vehicle, row[self._EXCEL_COLUMN_PRODUCT])
         name = self._build_line_description(row, row_datetime)
 
         vals = {
             'name': name,
             'quantity': 1.0,
             'price_unit': float(row[self._EXCEL_COLUMN_PRICE]),
+            'product_id': product.id,
         }
         if vehicle:
             vals['vehicle_id'] = vehicle.id
-        if product:
-            vals['product_id'] = product.id
-            if not vehicle:
-                vals['account_id'] = self.fallback_account_id.id
         else:
+            # No fleet.vehicle match -> keep the product (from the
+            # "maquinarias" catalog) but override its own account with the
+            # fallback, per the confirmed rule.
             vals['account_id'] = self.fallback_account_id.id
         return vals, vehicle
 
@@ -341,6 +390,13 @@ class EdenredImportWizard(models.TransientModel):
         self.ensure_one()
         if not self.fallback_account_id:
             raise UserError(_('Please set an account for lines without a matched vehicle.'))
+        if not self.subtotal_difference_account_id:
+            raise UserError(_('Please set a target account for the subtotal difference.'))
+        if self._EDENRED_TAG_FIELD not in self.env['product.product']._fields:
+            raise UserError(_(
+                'Product field "%s" (Edenred tags) is not configured in this database.',
+                self._EDENRED_TAG_FIELD,
+            ))
 
         df = self._read_excel_dataframe()
         df = self._filter_valid_rows(df)
@@ -367,19 +423,11 @@ class EdenredImportWizard(models.TransientModel):
         lines_total = sum(vals['price_unit'] for _cmd, _id, vals in invoice_lines)
         diff = self.subtotal - lines_total
         if abs(diff) > 0.01:
-            nafta_super = self.env['product.product'].search(
-                [('name', '=ilike', self._NAFTA_SUPER_PRODUCT_NAME)], limit=1)
-            if not nafta_super:
-                raise UserError(_(
-                    'Could not find a product named "%s" to post the subtotal difference.',
-                    self._NAFTA_SUPER_PRODUCT_NAME,
-                ))
             invoice_lines.append((0, 0, {
-                'product_id': nafta_super.id,
-                'name': nafta_super.name,
+                'name': _('Subtotal difference'),
                 'quantity': 1.0,
                 'price_unit': diff,
-                'account_id': self.fallback_account_id.id,
+                'account_id': self.subtotal_difference_account_id.id,
             }))
 
         move_vals = self._prepare_move_vals()

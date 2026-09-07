@@ -1,7 +1,7 @@
 Go to *Accounting > Vendors > New Edenred bill*, upload the Edenred Excel
 spreadsheet and the accompanying PDF invoice, fill in the vendor,
-journal, dates, the subtotal shown on the PDF invoice and the fallback
-account, and click *Confirm*.
+journal, dates, the subtotal shown on the PDF invoice, the fallback
+account and the subtotal-difference account, and click *Confirm*.
 
 Expected Excel columns (exact names, case-sensitive)::
 

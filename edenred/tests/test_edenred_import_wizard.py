@@ -45,19 +45,36 @@ class TestEdenredImportWizard(TransactionCase):
             'account_type': 'expense',
             'company_ids': [(6, 0, [cls.company.id])],
         })
+        cls.subtotal_diff_account = cls.env['account.account'].create({
+            'name': 'Subtotal Difference Test',
+            'code': '99999903',
+            'account_type': 'expense',
+            'company_ids': [(6, 0, [cls.company.id])],
+        })
 
-        cls.product = cls.env['product.product'].create({
-            'name': 'GNC',
-            'type': 'consu',
-            'purchase_ok': True,
-            'property_account_expense_id': cls.vehicle_account.id,
-        })
-        cls.nafta_super = cls.env['product.product'].create({
-            'name': 'Nafta Super',
-            'type': 'consu',
-            'purchase_ok': True,
-            'property_account_expense_id': cls.vehicle_account.id,
-        })
+        # Test stand-in for the client's Studio "Edenred" tags field, which
+        # doesn't exist in a vanilla database. _EDENRED_TAG_FIELD is patched
+        # (see setUp) to point at this real core Many2many field instead, so
+        # the matching algorithm itself gets fully exercised; only the
+        # constant needs to change once the real Studio field name is known.
+        cls.tag_diesel_super = cls.env['product.tag'].create({'name': 'DIESEL SUPER'})
+        cls.tag_nafta_super = cls.env['product.tag'].create({'name': 'NAFTA SUPER'})
+
+        def _make_catalog_product(name, tags=None):
+            return cls.env['product.product'].create({
+                'name': name,
+                'type': 'consu',
+                'purchase_ok': True,
+                'property_account_expense_id': cls.vehicle_account.id,
+                'product_tag_ids': [(6, 0, [t.id for t in tags])] if tags else False,
+            })
+
+        cls.diesel_autos = _make_catalog_product('Diesel (autos)', cls.tag_diesel_super)
+        cls.nafta_autos = _make_catalog_product('Nafta (autos)', cls.tag_nafta_super)
+        cls.otros_autos = _make_catalog_product('Otros gastos no combustible (autos)')
+        cls.diesel_maquinarias = _make_catalog_product('Diesel (maquinarias)', cls.tag_diesel_super)
+        cls.nafta_maquinarias = _make_catalog_product('Nafta (maquinarias)', cls.tag_nafta_super)
+        cls.otros_maquinarias = _make_catalog_product('Otros gastos no combustible (maquinarias)')
 
         cls.brand = cls.env['fleet.vehicle.model.brand'].create({'name': 'Test Brand'})
         cls.model = cls.env['fleet.vehicle.model'].create({
@@ -78,12 +95,20 @@ class TestEdenredImportWizard(TransactionCase):
         cls.employee = cls.env['hr.employee'].create({'name': 'Juan Perez'})
         cls.employee2 = cls.env['hr.employee'].create({'name': 'Maria Gomez'})
 
+    def setUp(self):
+        super().setUp()
+        self.patch(
+            type(self.env['edenred.import.wizard']),
+            '_EDENRED_TAG_FIELD',
+            'product_tag_ids',
+        )
+
     # -- helpers ---------------------------------------------------------
 
     def _row(self, **overrides):
         base = {
             'Placa': 'AB123CD',
-            'Producto / Servicio': 'GNC',
+            'Producto / Servicio': 'DIESEL SUPER',
             'Neto': 1000.0,
             'Fecha': date(2026, 8, 5),
             'hora': time(10, 0),
@@ -118,6 +143,7 @@ class TestEdenredImportWizard(TransactionCase):
             'pdf_filename': 'edenred.pdf',
             'subtotal': sum(r['Neto'] for r in rows),
             'fallback_account_id': self.fallback_account.id,
+            'subtotal_difference_account_id': self.subtotal_diff_account.id,
         }
         vals.update(kwargs)
         return self.env['edenred.import.wizard'].create(vals)
@@ -143,36 +169,63 @@ class TestEdenredImportWizard(TransactionCase):
         credit = sum(move.line_ids.mapped('credit'))
         self.assertAlmostEqual(debit, credit, places=2)
 
-    def test_vehicle_matched_line_uses_product_account(self):
-        wizard = self._create_wizard([self._row()])
+    # -- product selection: 6-product catalog by tag ------------------------
+
+    def test_vehicle_matched_tag_match_uses_autos_product_and_own_account(self):
+        wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'DIESEL SUPER'})])
         move = self._confirm_and_get_move(wizard)
         line = self._product_lines(move)
         self.assertEqual(line.vehicle_id, self.vehicle1)
-        self.assertEqual(line.product_id, self.product)
+        self.assertEqual(line.product_id, self.diesel_autos)
         self.assertEqual(line.account_id, self.vehicle_account)
         self.assertEqual(line.price_unit, 1000.0)
 
-    def test_vehicle_not_matched_uses_fallback_account(self):
-        wizard = self._create_wizard([self._row(Placa='NOMATCH')])
+    def test_vehicle_not_matched_tag_match_uses_maquinarias_product_but_fallback_account(self):
+        wizard = self._create_wizard(
+            [self._row(Placa='NOMATCH', **{'Producto / Servicio': 'DIESEL SUPER'})])
         move = self._confirm_and_get_move(wizard)
         line = self._product_lines(move)
         self.assertFalse(line.vehicle_id)
-        self.assertEqual(line.product_id, self.product)
+        self.assertEqual(line.product_id, self.diesel_maquinarias)
         self.assertEqual(line.account_id, self.fallback_account)
 
-    def test_product_not_found_creates_line_without_product(self):
+    def test_vehicle_matched_no_tag_match_falls_back_to_otros_autos(self):
         wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'Unknown Product'})])
         move = self._confirm_and_get_move(wizard)
         line = self._product_lines(move)
-        self.assertFalse(line.product_id)
-        self.assertEqual(line.account_id, self.fallback_account)
+        self.assertEqual(line.product_id, self.otros_autos)
+        self.assertEqual(line.account_id, self.vehicle_account)
         self.assertIn('Station 1', line.name)
 
-    def test_product_match_is_case_insensitive(self):
-        wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'gnc'})])
+    def test_vehicle_not_matched_no_tag_match_falls_back_to_otros_maquinarias(self):
+        wizard = self._create_wizard(
+            [self._row(Placa='NOMATCH', **{'Producto / Servicio': 'Unknown Product'})])
         move = self._confirm_and_get_move(wizard)
         line = self._product_lines(move)
-        self.assertEqual(line.product_id, self.product)
+        self.assertEqual(line.product_id, self.otros_maquinarias)
+        self.assertEqual(line.account_id, self.fallback_account)
+
+    def test_tag_match_is_case_insensitive(self):
+        wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'diesel super'})])
+        move = self._confirm_and_get_move(wizard)
+        line = self._product_lines(move)
+        self.assertEqual(line.product_id, self.diesel_autos)
+
+    def test_edenred_tag_field_not_configured_raises_clear_error(self):
+        self.patch(
+            type(self.env['edenred.import.wizard']),
+            '_EDENRED_TAG_FIELD',
+            'this_field_does_not_exist',
+        )
+        wizard = self._create_wizard([self._row()])
+        with self.assertRaises(UserError):
+            wizard.action_confirm()
+
+    def test_missing_fallback_catalog_product_raises_clear_error(self):
+        self.otros_autos.unlink()
+        wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'Unknown Product'})])
+        with self.assertRaises(UserError):
+            wizard.action_confirm()
 
     def test_zero_amount_row_excluded_from_invoice_lines(self):
         rows = [
@@ -201,7 +254,7 @@ class TestEdenredImportWizard(TransactionCase):
         self.assertFalse(odometer_vehicle1)
         self.assertTrue(odometer_vehicle2)
 
-    # -- fallback account default ------------------------------------------
+    # -- fallback / subtotal-difference account defaults ---------------------
 
     def test_fallback_account_default_found_by_code(self):
         magic_account = self.env['account.account'].create({
@@ -210,22 +263,31 @@ class TestEdenredImportWizard(TransactionCase):
             'account_type': 'expense',
             'company_ids': [(6, 0, [self.company.id])],
         })
-        res = self.env['edenred.import.wizard'].default_get(['fallback_account_id'])
+        res = self.env['edenred.import.wizard'].default_get(
+            ['fallback_account_id', 'subtotal_difference_account_id'])
         self.assertEqual(res.get('fallback_account_id'), magic_account.id)
+        self.assertEqual(res.get('subtotal_difference_account_id'), magic_account.id)
 
     def test_fallback_account_default_empty_when_not_found(self):
-        res = self.env['edenred.import.wizard'].default_get(['fallback_account_id'])
+        res = self.env['edenred.import.wizard'].default_get(
+            ['fallback_account_id', 'subtotal_difference_account_id'])
         self.assertFalse(res.get('fallback_account_id'))
+        self.assertFalse(res.get('subtotal_difference_account_id'))
 
     def test_confirm_without_fallback_account_raises(self):
         wizard = self._create_wizard([self._row()], fallback_account_id=False)
         with self.assertRaises(UserError):
             wizard.action_confirm()
 
+    def test_confirm_without_subtotal_difference_account_raises(self):
+        wizard = self._create_wizard([self._row()], subtotal_difference_account_id=False)
+        with self.assertRaises(UserError):
+            wizard.action_confirm()
+
     # -- missing columns -----------------------------------------------------
 
     def test_missing_columns_raises_user_error(self):
-        df = pd.DataFrame({'Placa': ['AB123CD'], 'Producto / Servicio': ['GNC']})
+        df = pd.DataFrame({'Placa': ['AB123CD'], 'Producto / Servicio': ['DIESEL SUPER']})
         buf = io.BytesIO()
         df.to_excel(buf, index=False, engine='openpyxl')
         wizard = self._create_wizard([self._row()])
@@ -343,34 +405,24 @@ class TestEdenredImportWizard(TransactionCase):
         move = self._confirm_and_get_move(wizard)
         self.assertEqual(len(self._product_lines(move)), 1)
 
-    def test_nafta_super_match_is_case_insensitive(self):
-        # Regression: the catalog product is often stored as "NAFTA SUPER"
-        # while the constant is "Nafta Super" - must still match.
-        self.nafta_super.name = 'NAFTA SUPER'
-        rows = [self._row()]
-        wizard = self._create_wizard(rows, subtotal=1050.0)
-        move = self._confirm_and_get_move(wizard)
-        nafta_line = self._product_lines(move).filtered(
-            lambda l: l.product_id == self.nafta_super)
-        self.assertTrue(nafta_line)
-
-    def test_subtotal_mismatch_adds_nafta_super_line_positive(self):
+    def test_subtotal_mismatch_adds_difference_line_positive(self):
         rows = [self._row()]
         wizard = self._create_wizard(rows, subtotal=1050.0)
         move = self._confirm_and_get_move(wizard)
         lines = self._product_lines(move)
         self.assertEqual(len(lines), 2)
-        nafta_line = lines.filtered(lambda l: l.product_id == self.nafta_super)
-        self.assertAlmostEqual(nafta_line.price_unit, 50.0, places=2)
-        self.assertEqual(nafta_line.account_id, self.fallback_account)
+        diff_line = lines.filtered(lambda l: not l.product_id)
+        self.assertTrue(diff_line)
+        self.assertAlmostEqual(diff_line.price_unit, 50.0, places=2)
+        self.assertEqual(diff_line.account_id, self.subtotal_diff_account)
 
-    def test_subtotal_mismatch_adds_nafta_super_line_negative(self):
+    def test_subtotal_mismatch_adds_difference_line_negative(self):
         rows = [self._row()]
         wizard = self._create_wizard(rows, subtotal=950.0)
         move = self._confirm_and_get_move(wizard)
         lines = self._product_lines(move)
-        nafta_line = lines.filtered(lambda l: l.product_id == self.nafta_super)
-        self.assertAlmostEqual(nafta_line.price_unit, -50.0, places=2)
+        diff_line = lines.filtered(lambda l: not l.product_id)
+        self.assertAlmostEqual(diff_line.price_unit, -50.0, places=2)
 
     # -- fleet service log --------------------------------------------------
 
@@ -384,7 +436,7 @@ class TestEdenredImportWizard(TransactionCase):
         ])
         self.assertEqual(len(service), 1)
         self.assertEqual(service.vehicle_id, self.vehicle1)
-        self.assertEqual(service.description, 'GNC 35.50 L')
+        self.assertEqual(service.description, 'DIESEL SUPER 35.50 L')
         self.assertEqual(service.date, date(2026, 8, 5))
         self.assertEqual(service.notes, line.name)
 

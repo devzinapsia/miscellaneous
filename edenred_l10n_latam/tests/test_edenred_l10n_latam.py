@@ -30,8 +30,17 @@ class TestEdenredL10nLatam(TransactionCase):
             'account_type': 'expense',
             'company_ids': [(6, 0, [cls.company.id])],
         })
-        cls.product = cls.env['product.product'].create({
-            'name': 'GNC',
+        cls.subtotal_diff_account = cls.env['account.account'].create({
+            'name': 'Subtotal Difference Test',
+            'code': '99999904',
+            'account_type': 'expense',
+            'company_ids': [(6, 0, [cls.company.id])],
+        })
+        # No fleet.vehicle is created in this test, so the row's plate never
+        # matches -> the wizard falls back to the "maquinarias" catalog's
+        # own fallback product (no Edenred tag configured for this test).
+        cls.otros_maquinarias = cls.env['product.product'].create({
+            'name': 'Otros gastos no combustible (maquinarias)',
             'type': 'consu',
             'purchase_ok': True,
         })
@@ -40,6 +49,14 @@ class TestEdenredL10nLatam(TransactionCase):
             'name': 'Test Invoice',
             'country_id': cls.country.id,
         })
+
+    def setUp(self):
+        super().setUp()
+        self.patch(
+            type(self.env['edenred.import.wizard']),
+            '_EDENRED_TAG_FIELD',
+            'product_tag_ids',
+        )
 
     def _build_excel(self):
         row = {
@@ -71,6 +88,7 @@ class TestEdenredL10nLatam(TransactionCase):
             'pdf_filename': 'edenred.pdf',
             'subtotal': 1000.0,
             'fallback_account_id': self.fallback_account.id,
+            'subtotal_difference_account_id': self.subtotal_diff_account.id,
             'l10n_latam_document_type_id': self.doc_type.id,
             'document_number': '0001-00000001',
         })

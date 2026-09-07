@@ -8,21 +8,27 @@ bill (``account.move``), one invoice line per valid row.
 
 For each row, the wizard:
 
-* Looks up the product by its exact name (``Producto / Servicio`` column,
-  trimmed) and the vehicle by its exact license plate (``Placa`` column,
-  trimmed and upper-cased).
-* Links the invoice line to the vehicle using the standard
-  ``account.move.line.vehicle_id`` field (added by the ``account_fleet``
-  bridge module) whenever the plate matches.
-* Falls back to a configurable account whenever the product is not found,
-  or the product is found but no vehicle matched.
+* Matches the vehicle by its exact license plate (``Placa`` column,
+  trimmed and upper-cased). Links the invoice line to the vehicle using
+  the standard ``account.move.line.vehicle_id`` field (added by the
+  ``account_fleet`` bridge module) whenever the plate matches.
+* Picks the product from a fixed 6-product catalog instead of matching by
+  name: whether the plate matched a vehicle decides which 3 of the 6
+  apply ("(autos)" if matched, "(maquinarias)" if not); within those 3,
+  the row's ``Producto / Servicio`` text is matched against each
+  candidate's Edenred tags (a Studio field). No tag match falls back to
+  that category's own "Otros gastos no combustible" product.
+* Uses the matched product's own account when the vehicle matched;
+  otherwise uses a configurable fallback account instead.
 * After the invoice lines are built, for each vehicle that had at least
   one matched row, updates the vehicle's current driver
   (``fleet.vehicle.driver_id``) and logs/updates an odometer reading
   (``fleet.vehicle.odometer``) based on the most recent row (by date and
   time) for that vehicle.
+* Creates a ``fleet.vehicle.log.services`` record for every vehicle-matched
+  line, with the product/liters, date, odometer and full row description.
 * Reconciles the sum of all line amounts against the subtotal declared in
-  the wizard, adding an adjustment line on the "Nafta Super" product for
+  the wizard, adding an adjustment line (no product, just an account) for
   any difference.
 
 The original Excel and PDF files are attached to the created vendor bill.
@@ -35,21 +41,27 @@ The original Excel and PDF files are attached to the created vendor bill.
 Configuration
 =============
 
-No specific configuration is required beyond having the standard
-dependencies installed and set up:
+This module requires a few things to be set up beyond its own
+dependencies:
 
 * ``fleet.vehicle`` records with their ``license_plate`` set, matching the
   plates used in the Edenred spreadsheet.
-* A product per Edenred concept (``Producto / Servicio`` column), named
-  exactly as it appears in the spreadsheet.
-* A product named exactly "Nafta Super", used to post any difference
-  between the sum of the imported lines and the subtotal declared in the
-  wizard.
+* Exactly 6 catalog products, named:
+  "Diesel (autos)", "Nafta (autos)", "Otros gastos no combustible (autos)",
+  "Diesel (maquinarias)", "Nafta (maquinarias)" and
+  "Otros gastos no combustible (maquinarias)".
+* A Studio field on the product (tags, e.g. "DIESEL SUPER", "NAFTA
+  PREMIUM") holding the exact ``Producto / Servicio`` values used in the
+  Edenred spreadsheet for each of those 6 products. Its technical name is
+  configured as a constant in the wizard's code
+  (``_EDENRED_TAG_FIELD``) and must match the field actually configured
+  in this database.
 * An ``account.account`` to use as the fallback account for lines whose
-  product was not found, or whose product was found but no vehicle
-  matched. The wizard defaults this to the account with code
-  ``5.3.1.01.148`` in the current company, when it exists; otherwise it
-  must be set manually.
+  vehicle did not match. The wizard defaults this to the account with
+  code ``5.3.1.01.148`` in the current company, when it exists; otherwise
+  it must be set manually.
+* An ``account.account`` to use as the target for the subtotal difference
+  adjustment line. Also defaults to code ``5.3.1.01.148`` when it exists.
 * ``hr.employee`` records whose ``name`` matches the driver names used in
   the ``Conductor`` column (word order does not matter), so that the
   vehicle's current driver and the odometer log's driver can be set
@@ -60,8 +72,8 @@ Usage
 
 Go to *Accounting > Vendors > New Edenred bill*, upload the Edenred Excel
 spreadsheet and the accompanying PDF invoice, fill in the vendor,
-journal, dates, the subtotal shown on the PDF invoice and the fallback
-account, and click *Confirm*.
+journal, dates, the subtotal shown on the PDF invoice, the fallback
+account and the subtotal-difference account, and click *Confirm*.
 
 Expected Excel columns (exact names, case-sensitive)::
 
