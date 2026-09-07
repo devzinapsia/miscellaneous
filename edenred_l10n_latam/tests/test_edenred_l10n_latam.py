@@ -50,14 +50,6 @@ class TestEdenredL10nLatam(TransactionCase):
             'country_id': cls.country.id,
         })
 
-    def setUp(self):
-        super().setUp()
-        self.patch(
-            type(self.env['edenred.import.wizard']),
-            '_EDENRED_TAG_FIELD',
-            'product_tag_ids',
-        )
-
     def _build_excel(self):
         row = {
             'Placa': 'AB123CD',

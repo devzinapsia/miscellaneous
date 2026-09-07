@@ -20,14 +20,15 @@ class EdenredImportWizard(models.TransientModel):
     _FALLBACK_ACCOUNT_DEFAULT_CODE = '5.3.1.01.148'
     _SUBTOTAL_DIFFERENCE_ACCOUNT_DEFAULT_CODE = '5.3.1.01.148'
 
-    # Technical name of the Studio "Edenred" tags field on product.product
-    # (Many2many to a tag model with a "name" field), used to match a row's
-    # "Producto / Servicio" text to one of the 6 catalog products below.
-    # TODO: confirm the real technical name in the client's database
-    # (Settings > Technical > Database Structure > Fields, model
-    # product.template, field label "Edenred") and update this constant -
-    # currently a placeholder.
-    _EDENRED_TAG_FIELD = 'x_studio_edenred'
+    # "Edenred" is not a Studio field: it's a "tags"-type entry inside
+    # Odoo's standard product.product_properties field (fields.Properties,
+    # defined per product category via categ_id.product_properties_definition
+    # - Settings > Technical > Database Structure > Fields confirms
+    # product_properties as the technical name). Matched by its label
+    # ("Edenred") rather than an opaque per-database generated key, so no
+    # per-database technical name needs confirming.
+    _EDENRED_PROPERTIES_FIELD = 'product_properties'
+    _EDENRED_PROPERTY_LABEL = 'Edenred'
 
     # The 6-product catalog this client uses instead of matching by product
     # name: which 3 apply depends on whether the row's plate matched a
@@ -204,6 +205,25 @@ class EdenredImportWizard(models.TransientModel):
 
     # -- Matching --------------------------------------------------------
 
+    def _get_edenred_tags(self, product):
+        """Return the set of (normalized) tag labels currently selected in
+        the "Edenred" property (a 'tags'-type entry in product_properties,
+        defined per product category) for this product.
+        """
+        properties = product.read([self._EDENRED_PROPERTIES_FIELD])[0][self._EDENRED_PROPERTIES_FIELD]
+        prop = next(
+            (p for p in properties if p.get('string') == self._EDENRED_PROPERTY_LABEL),
+            None,
+        )
+        if not prop or prop.get('type') != 'tags':
+            return set()
+        selected_keys = set(prop.get('value') or [])
+        return {
+            str(label).strip().upper()
+            for key, label, *_rest in (prop.get('tags') or [])
+            if key in selected_keys
+        }
+
     def _select_product(self, vehicle, product_name):
         if vehicle:
             candidate_names = self._PRODUCT_CATEGORY_AUTOS_NAMES
@@ -216,9 +236,7 @@ class EdenredImportWizard(models.TransientModel):
         target = str(product_name).strip().upper()
         if target:
             for product in candidates:
-                tags = getattr(product, self._EDENRED_TAG_FIELD)
-                tag_names = {str(tag.name).strip().upper() for tag in tags}
-                if target in tag_names:
+                if target in self._get_edenred_tags(product):
                     return product
 
         fallback_product = candidates.filtered(lambda p: p.name == fallback_name)
@@ -392,11 +410,6 @@ class EdenredImportWizard(models.TransientModel):
             raise UserError(_('Please set an account for lines without a matched vehicle.'))
         if not self.subtotal_difference_account_id:
             raise UserError(_('Please set a target account for the subtotal difference.'))
-        if self._EDENRED_TAG_FIELD not in self.env['product.product']._fields:
-            raise UserError(_(
-                'Product field "%s" (Edenred tags) is not configured in this database.',
-                self._EDENRED_TAG_FIELD,
-            ))
 
         df = self._read_excel_dataframe()
         df = self._filter_valid_rows(df)

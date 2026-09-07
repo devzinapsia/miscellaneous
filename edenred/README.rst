@@ -16,8 +16,9 @@ For each row, the wizard:
   name: whether the plate matched a vehicle decides which 3 of the 6
   apply ("(autos)" if matched, "(maquinarias)" if not); within those 3,
   the row's ``Producto / Servicio`` text is matched against each
-  candidate's Edenred tags (a Studio field). No tag match falls back to
-  that category's own "Otros gastos no combustible" product.
+  candidate's "Edenred" property tags (``product.product_properties``).
+  No tag match falls back to that category's own "Otros gastos no
+  combustible" product.
 * Uses the matched product's own account when the vehicle matched;
   otherwise uses a configurable fallback account instead.
 * After the invoice lines are built, for each vehicle that had at least
@@ -50,12 +51,12 @@ dependencies:
   "Diesel (autos)", "Nafta (autos)", "Otros gastos no combustible (autos)",
   "Diesel (maquinarias)", "Nafta (maquinarias)" and
   "Otros gastos no combustible (maquinarias)".
-* A Studio field on the product (tags, e.g. "DIESEL SUPER", "NAFTA
-  PREMIUM") holding the exact ``Producto / Servicio`` values used in the
-  Edenred spreadsheet for each of those 6 products. Its technical name is
-  configured as a constant in the wizard's code
-  (``_EDENRED_TAG_FIELD``) and must match the field actually configured
-  in this database.
+* An "Edenred" property (a "Tags" type property added via the product
+  form's "Editar propiedades", stored in the standard
+  ``product.product_properties`` field, defined per product category)
+  on each of those 6 products, with tags matching the exact
+  ``Producto / Servicio`` values used in the Edenred spreadsheet (e.g.
+  "DIESEL SUPER", "NAFTA PREMIUM") selected as appropriate.
 * An ``account.account`` to use as the fallback account for lines whose
   vehicle did not match. The wizard defaults this to the account with
   code ``5.3.1.01.148`` in the current company, when it exists; otherwise

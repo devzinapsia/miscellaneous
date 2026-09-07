@@ -52,28 +52,41 @@ class TestEdenredImportWizard(TransactionCase):
             'company_ids': [(6, 0, [cls.company.id])],
         })
 
-        # Test stand-in for the client's Studio "Edenred" tags field, which
-        # doesn't exist in a vanilla database. _EDENRED_TAG_FIELD is patched
-        # (see setUp) to point at this real core Many2many field instead, so
-        # the matching algorithm itself gets fully exercised; only the
-        # constant needs to change once the real Studio field name is known.
-        cls.tag_diesel_super = cls.env['product.tag'].create({'name': 'DIESEL SUPER'})
-        cls.tag_nafta_super = cls.env['product.tag'].create({'name': 'NAFTA SUPER'})
+        # The "Edenred" property (a "Tags" type entry in the standard
+        # product.product_properties field) is defined per product
+        # category, via categ_id.product_properties_definition.
+        cls.category = cls.env['product.category'].create({'name': 'Edenred Test Category'})
+        cls.category.product_properties_definition = [{
+            'name': 'edenred_tags',
+            'string': 'Edenred',
+            'type': 'tags',
+            'tags': [
+                ['diesel_super', 'DIESEL SUPER', 1],
+                ['diesel_premium', 'DIESEL PREMIUM', 2],
+                ['nafta_super', 'NAFTA SUPER', 3],
+                ['nafta_premium', 'NAFTA PREMIUM', 4],
+            ],
+        }]
 
-        def _make_catalog_product(name, tags=None):
+        def _make_catalog_product(name, tag_keys=None):
             return cls.env['product.product'].create({
                 'name': name,
                 'type': 'consu',
                 'purchase_ok': True,
+                'categ_id': cls.category.id,
                 'property_account_expense_id': cls.vehicle_account.id,
-                'product_tag_ids': [(6, 0, [t.id for t in tags])] if tags else False,
+                'product_properties': {'edenred_tags': tag_keys or []},
             })
 
-        cls.diesel_autos = _make_catalog_product('Diesel (autos)', cls.tag_diesel_super)
-        cls.nafta_autos = _make_catalog_product('Nafta (autos)', cls.tag_nafta_super)
+        cls.diesel_autos = _make_catalog_product(
+            'Diesel (autos)', ['diesel_super', 'diesel_premium'])
+        cls.nafta_autos = _make_catalog_product(
+            'Nafta (autos)', ['nafta_super', 'nafta_premium'])
         cls.otros_autos = _make_catalog_product('Otros gastos no combustible (autos)')
-        cls.diesel_maquinarias = _make_catalog_product('Diesel (maquinarias)', cls.tag_diesel_super)
-        cls.nafta_maquinarias = _make_catalog_product('Nafta (maquinarias)', cls.tag_nafta_super)
+        cls.diesel_maquinarias = _make_catalog_product(
+            'Diesel (maquinarias)', ['diesel_super', 'diesel_premium'])
+        cls.nafta_maquinarias = _make_catalog_product(
+            'Nafta (maquinarias)', ['nafta_super', 'nafta_premium'])
         cls.otros_maquinarias = _make_catalog_product('Otros gastos no combustible (maquinarias)')
 
         cls.brand = cls.env['fleet.vehicle.model.brand'].create({'name': 'Test Brand'})
@@ -94,14 +107,6 @@ class TestEdenredImportWizard(TransactionCase):
 
         cls.employee = cls.env['hr.employee'].create({'name': 'Juan Perez'})
         cls.employee2 = cls.env['hr.employee'].create({'name': 'Maria Gomez'})
-
-    def setUp(self):
-        super().setUp()
-        self.patch(
-            type(self.env['edenred.import.wizard']),
-            '_EDENRED_TAG_FIELD',
-            'product_tag_ids',
-        )
 
     # -- helpers ---------------------------------------------------------
 
@@ -210,16 +215,6 @@ class TestEdenredImportWizard(TransactionCase):
         move = self._confirm_and_get_move(wizard)
         line = self._product_lines(move)
         self.assertEqual(line.product_id, self.diesel_autos)
-
-    def test_edenred_tag_field_not_configured_raises_clear_error(self):
-        self.patch(
-            type(self.env['edenred.import.wizard']),
-            '_EDENRED_TAG_FIELD',
-            'this_field_does_not_exist',
-        )
-        wizard = self._create_wizard([self._row()])
-        with self.assertRaises(UserError):
-            wizard.action_confirm()
 
     def test_missing_fallback_catalog_product_raises_clear_error(self):
         self.otros_autos.unlink()

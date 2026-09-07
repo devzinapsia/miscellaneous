@@ -12,8 +12,9 @@ For each row, the wizard:
   name: whether the plate matched a vehicle decides which 3 of the 6
   apply ("(autos)" if matched, "(maquinarias)" if not); within those 3,
   the row's ``Producto / Servicio`` text is matched against each
-  candidate's Edenred tags (a Studio field). No tag match falls back to
-  that category's own "Otros gastos no combustible" product.
+  candidate's "Edenred" property tags (``product.product_properties``).
+  No tag match falls back to that category's own "Otros gastos no
+  combustible" product.
 * Uses the matched product's own account when the vehicle matched;
   otherwise uses a configurable fallback account instead.
 * After the invoice lines are built, for each vehicle that had at least

@@ -7,12 +7,12 @@ dependencies:
   "Diesel (autos)", "Nafta (autos)", "Otros gastos no combustible (autos)",
   "Diesel (maquinarias)", "Nafta (maquinarias)" and
   "Otros gastos no combustible (maquinarias)".
-* A Studio field on the product (tags, e.g. "DIESEL SUPER", "NAFTA
-  PREMIUM") holding the exact ``Producto / Servicio`` values used in the
-  Edenred spreadsheet for each of those 6 products. Its technical name is
-  configured as a constant in the wizard's code
-  (``_EDENRED_TAG_FIELD``) and must match the field actually configured
-  in this database.
+* An "Edenred" property (a "Tags" type property added via the product
+  form's "Editar propiedades", stored in the standard
+  ``product.product_properties`` field, defined per product category)
+  on each of those 6 products, with tags matching the exact
+  ``Producto / Servicio`` values used in the Edenred spreadsheet (e.g.
+  "DIESEL SUPER", "NAFTA PREMIUM") selected as appropriate.
 * An ``account.account`` to use as the fallback account for lines whose
   vehicle did not match. The wizard defaults this to the account with
   code ``5.3.1.01.148`` in the current company, when it exists; otherwise
