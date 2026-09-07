@@ -68,7 +68,49 @@ class TestEdenredImportWizard(TransactionCase):
             ],
         }]
 
-        def _make_catalog_product(name, tag_keys=None):
+        cls.tax_account_itc = cls.env['account.account'].create({
+            'name': 'ITC Tax Account Test',
+            'code': '54101030',
+            'account_type': 'expense',
+            'company_ids': [(6, 0, [cls.company.id])],
+        })
+        cls.tax_account_idc = cls.env['account.account'].create({
+            'name': 'IDC Tax Account Test',
+            'code': '54101031',
+            'account_type': 'expense',
+            'company_ids': [(6, 0, [cls.company.id])],
+        })
+
+        def _make_fixed_tax(name, account):
+            return cls.env['account.tax'].create({
+                'name': name,
+                'amount_type': 'fixed',
+                'amount': 1.0,
+                'type_tax_use': 'purchase',
+                'company_id': cls.company.id,
+                'invoice_repartition_line_ids': [
+                    (0, 0, {'repartition_type': 'base'}),
+                    (0, 0, {'repartition_type': 'tax', 'account_id': account.id}),
+                ],
+                'refund_repartition_line_ids': [
+                    (0, 0, {'repartition_type': 'base'}),
+                    (0, 0, {'repartition_type': 'tax', 'account_id': account.id}),
+                ],
+            })
+
+        cls.tax_iva = cls.env['account.tax'].create({
+            'name': 'IVA 21%',
+            'amount_type': 'percent',
+            'amount': 21.0,
+            'type_tax_use': 'purchase',
+            'company_id': cls.company.id,
+        })
+        cls.tax_itc = _make_fixed_tax('ITC', cls.tax_account_itc)
+        cls.tax_idc = _make_fixed_tax('IDC', cls.tax_account_idc)
+        # Real config: "Impuestos internos" posts to the same account as ITC.
+        cls.tax_internal = _make_fixed_tax('Impuestos internos', cls.tax_account_itc)
+
+        def _make_catalog_product(name, tag_keys=None, taxes=None):
             return cls.env['product.product'].create({
                 'name': name,
                 'type': 'consu',
@@ -76,10 +118,12 @@ class TestEdenredImportWizard(TransactionCase):
                 'categ_id': cls.category.id,
                 'property_account_expense_id': cls.vehicle_account.id,
                 'product_properties': {'edenred_tags': tag_keys or []},
+                'supplier_taxes_id': [(6, 0, taxes.ids)] if taxes else False,
             })
 
+        cls.fuel_taxes = cls.tax_iva + cls.tax_itc + cls.tax_idc + cls.tax_internal
         cls.diesel_autos = _make_catalog_product(
-            'Diesel (autos)', ['diesel_super', 'diesel_premium'])
+            'Diesel (autos)', ['diesel_super', 'diesel_premium'], cls.fuel_taxes)
         cls.nafta_autos = _make_catalog_product(
             'Nafta (autos)', ['nafta_super', 'nafta_premium'])
         cls.otros_autos = _make_catalog_product('Otros gastos no combustible (autos)')
@@ -147,6 +191,9 @@ class TestEdenredImportWizard(TransactionCase):
             'pdf_file': base64.b64encode(b'%PDF-1.4 test invoice'),
             'pdf_filename': 'edenred.pdf',
             'subtotal': sum(r['Neto'] for r in rows),
+            'itc_total': 0.0,
+            'idc_total': 0.0,
+            'internal_tax_total': 0.0,
             'fallback_account_id': self.fallback_account.id,
             'subtotal_difference_account_id': self.subtotal_diff_account.id,
         }
@@ -391,6 +438,58 @@ class TestEdenredImportWizard(TransactionCase):
         ])
         self.assertEqual(len(odometers), 2)
         self.assertEqual(set(odometers.mapped('value')), {100.0, 150.0})
+
+    # -- fixed tax totals (ITC / IDC / Impuestos internos) -------------------
+
+    def _tax_line(self, move, tax):
+        return move.line_ids.filtered(lambda l: l.tax_line_id == tax)
+
+    def test_fixed_tax_totals_applied_from_wizard_inputs(self):
+        # internal_tax_total is the gross figure from the Edenred PDF,
+        # which bundles ITC+IDC into it - the net "Impuestos internos"
+        # tax line must be the residual after subtracting both.
+        wizard = self._create_wizard(
+            [self._row()],
+            itc_total=252000.0,
+            idc_total=1500000.0,
+            internal_tax_total=1892000.0,
+        )
+        move = self._confirm_and_get_move(wizard)
+
+        itc_line = self._tax_line(move, self.tax_itc)
+        idc_line = self._tax_line(move, self.tax_idc)
+        internal_line = self._tax_line(move, self.tax_internal)
+
+        self.assertAlmostEqual(itc_line.amount_currency, 252000.0, places=2)
+        self.assertAlmostEqual(idc_line.amount_currency, 1500000.0, places=2)
+        self.assertAlmostEqual(internal_line.amount_currency, 140000.0, places=2)
+
+    def test_fixed_tax_totals_missing_tax_line_raises_when_nonzero(self):
+        # otros_autos doesn't carry the ITC/IDC/Impuestos internos taxes.
+        wizard = self._create_wizard(
+            [self._row(**{'Producto / Servicio': 'Unknown Product'})],
+            itc_total=100.0,
+        )
+        with self.assertRaises(UserError):
+            wizard.action_confirm()
+
+    def test_fixed_tax_totals_zero_and_no_tax_line_does_not_raise(self):
+        wizard = self._create_wizard([self._row(**{'Producto / Servicio': 'Unknown Product'})])
+        move = self._confirm_and_get_move(wizard)
+        self.assertTrue(move)
+
+    def test_move_stays_balanced_after_fixed_tax_totals(self):
+        wizard = self._create_wizard(
+            [self._row(), self._row(Placa='XY987ZZ', **{'No. Transacción': 'T-0002'})],
+            subtotal=2000.0,
+            itc_total=252000.0,
+            idc_total=1500000.0,
+            internal_tax_total=1892000.0,
+        )
+        move = self._confirm_and_get_move(wizard)
+        debit = sum(move.line_ids.mapped('debit'))
+        credit = sum(move.line_ids.mapped('credit'))
+        self.assertAlmostEqual(debit, credit, places=2)
 
     # -- subtotal reconciliation ---------------------------------------------
 

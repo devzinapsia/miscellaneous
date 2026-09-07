@@ -1,7 +1,8 @@
 Go to *Accounting > Vendors > New Edenred bill*, upload the Edenred Excel
 spreadsheet and the accompanying PDF invoice, fill in the vendor,
-journal, dates, the subtotal shown on the PDF invoice, the fallback
-account and the subtotal-difference account, and click *Confirm*.
+journal, dates, the subtotal shown on the PDF invoice, the ITC/IDC/
+Impuestos internos totals shown on the PDF invoice, the fallback account
+and the subtotal-difference account, and click *Confirm*.
 
 Expected Excel columns (exact names, case-sensitive)::
 
@@ -43,3 +44,17 @@ For every line matched to a vehicle, the wizard creates the corresponding
 Since the wizard links the service to its invoice line up front, posting
 the bill later does not create a second, duplicate service log for the
 same line.
+
+Fixed-amount tax totals (ITC / IDC / Impuestos internos)
+----------------------------------------------------------
+
+These 3 taxes are configured with a placeholder fixed amount (not the
+real per-invoice total), so the wizard takes the real totals from the
+PDF invoice as input and forces them onto the created bill's tax lines,
+without ever deleting a tax line (only adjusting existing ones - deleting
+would break editing the bill later, since Odoo expects to find the same
+tax lines it originally created).
+
+"Total Impuestos internos" is the **gross** figure shown on the PDF,
+which bundles ITC and IDC into it; the net "Impuestos internos" tax line
+is computed as that total minus "Total ITC" minus "Total IDC".

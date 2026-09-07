@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 15:45+0000\n"
-"PO-Revision-Date: 2026-09-07 15:45+0000\n"
+"POT-Creation-Date: 2026-09-07 17:30+0000\n"
+"PO-Revision-Date: 2026-09-07 17:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -43,6 +43,12 @@ msgstr ""
 #. module: edenred
 #: model_terms:ir.ui.view,arch_db:edenred.view_edenred_import_wizard_form
 msgid "Confirm"
+msgstr ""
+
+#. module: edenred
+#. odoo-python
+#: code:addons/edenred/wizard/edenred_import_wizard.py:0
+msgid "Could not find a tax line named \"%s\" on the created bill."
 msgstr ""
 
 #. module: edenred
@@ -182,6 +188,21 @@ msgstr ""
 #. odoo-python
 #: code:addons/edenred/wizard/edenred_import_wizard.py:0
 msgid "The Excel file is missing the following expected columns: %s"
+msgstr ""
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__idc_total
+msgid "Total IDC"
+msgstr ""
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__itc_total
+msgid "Total ITC"
+msgstr ""
+
+#. module: edenred
+#: model:ir.model.fields,field_description:edenred.field_edenred_import_wizard__internal_tax_total
+msgid "Total Impuestos internos"
 msgstr ""
 
 #. module: edenred

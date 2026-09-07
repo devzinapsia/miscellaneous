@@ -1,6 +1,6 @@
 {
     "name": "Edenred - Fuel Invoice Import",
-    "version": "19.0.1.0.1",
+    "version": "19.0.1.0.2",
     "category": "Accounting",
     "summary": "Import Edenred fuel consumption spreadsheets into a vendor bill",
     "author": "Zinapsia",

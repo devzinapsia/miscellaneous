@@ -27,5 +27,7 @@ For each row, the wizard:
 * Reconciles the sum of all line amounts against the subtotal declared in
   the wizard, adding an adjustment line (no product, just an account) for
   any difference.
+* Forces the ITC, IDC and Impuestos internos fixed-amount tax lines to the
+  totals declared in the wizard (see "Fixed-amount tax totals" below).
 
 The original Excel and PDF files are attached to the created vendor bill.

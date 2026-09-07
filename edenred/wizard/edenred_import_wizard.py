@@ -78,6 +78,13 @@ class EdenredImportWizard(models.TransientModel):
     # look the same as the ones account_fleet would auto-create at posting.
     _FLEET_SERVICE_TYPE_XMLID = 'account_fleet.data_fleet_service_type_vendor_bill'
 
+    # Exact names of the 3 fixed-amount taxes whose totals this client
+    # provides directly (from the Edenred PDF) rather than trusting Odoo's
+    # naive per-line fixed-amount computation (see _apply_fixed_tax_totals).
+    _TAX_NAME_ITC = 'ITC'
+    _TAX_NAME_IDC = 'IDC'
+    _TAX_NAME_INTERNAL = 'Impuestos internos'
+
     excel_file = fields.Binary(string='Excel file', required=True)
     excel_filename = fields.Char(string='Excel filename')
     pdf_file = fields.Binary(string='PDF file', required=True)
@@ -102,6 +109,13 @@ class EdenredImportWizard(models.TransientModel):
 
     subtotal = fields.Monetary(
         string='Subtotal', required=True, currency_field='currency_id')
+
+    itc_total = fields.Monetary(
+        string='Total ITC', required=True, currency_field='currency_id')
+    idc_total = fields.Monetary(
+        string='Total IDC', required=True, currency_field='currency_id')
+    internal_tax_total = fields.Monetary(
+        string='Total Impuestos internos', required=True, currency_field='currency_id')
 
     # Not required=True at the field level on purpose: action_confirm raises
     # its own UserError when this is empty, which needs to actually be
@@ -373,6 +387,52 @@ class EdenredImportWizard(models.TransientModel):
         if vals_list:
             self.env['fleet.vehicle.log.services'].create(vals_list)
 
+    def _set_tax_total(self, move, tax_name, target_total):
+        """Force the total of a fixed-amount tax's line(s) on `move` to
+        `target_total`, without ever deleting a tax line.
+
+        The 3 fixed-amount taxes (ITC, IDC, Impuestos internos) are all
+        configured with a placeholder amount (1.00 per unit); the real
+        totals come from the Edenred PDF instead and are entered on the
+        wizard. Since edenred doesn't use analytic_distribution, all the
+        product lines sharing a given tax normally consolidate into a
+        single tax line - but just in case they don't (e.g. a future
+        change reintroduces a distinguishing dimension), the total is
+        redistributed proportionally across every existing line for that
+        tax, with the last one absorbing the rounding, exactly like
+        ypf_route's fix for the same "never delete a tax line" constraint
+        (PostgreSQL's check_amount_currency_balance_sign check breaks
+        otherwise on the next edit).
+        """
+        tax_lines = move.line_ids.filtered(
+            lambda l: l.tax_line_id and l.tax_line_id.name == tax_name)
+        if not tax_lines:
+            if move.currency_id.is_zero(target_total):
+                return
+            raise UserError(_(
+                'Could not find a tax line named "%s" on the created bill.', tax_name))
+
+        sign = -1 if move.is_inbound() else 1
+        target = float(target_total) * sign
+        current_total = sum(tax_lines.mapped('amount_currency'))
+
+        remaining = target
+        for line in tax_lines[:-1]:
+            if move.currency_id.is_zero(current_total):
+                share = move.currency_id.round(target / len(tax_lines))
+            else:
+                share = move.currency_id.round(line.amount_currency / current_total * target)
+            line.with_context(check_move_validity=False).amount_currency = share
+            remaining -= share
+        tax_lines[-1].with_context(check_move_validity=False).amount_currency = remaining
+
+    def _apply_fixed_tax_totals(self, move):
+        internal_tax_net = self.internal_tax_total - self.itc_total - self.idc_total
+        self._set_tax_total(move, self._TAX_NAME_ITC, self.itc_total)
+        self._set_tax_total(move, self._TAX_NAME_IDC, self.idc_total)
+        self._set_tax_total(move, self._TAX_NAME_INTERNAL, internal_tax_net)
+        move._compute_amount()
+
     # -- Move creation -------------------------------------------------------
 
     def _prepare_move_vals(self):
@@ -447,6 +507,7 @@ class EdenredImportWizard(models.TransientModel):
         move_vals['invoice_line_ids'] = invoice_lines
         move = self.env['account.move'].create(move_vals)
 
+        self._apply_fixed_tax_totals(move)
         self._sync_vehicles_drivers_and_odometers(vehicle_rows)
         self._create_fleet_log_services(move, line_extras)
         self._attach_source_files(move)
