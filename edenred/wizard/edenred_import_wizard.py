@@ -5,6 +5,7 @@ from datetime import datetime
 from datetime import time as dt_time
 
 import pandas as pd
+from markupsafe import Markup
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
@@ -501,19 +502,26 @@ class EdenredImportWizard(models.TransientModel):
         ])
 
     def _post_import_notes(self, move, unmatched_plates, diff):
+        # message_post() only renders an actual Markup instance as HTML - a
+        # plain str gets escaped and shows up as literal "<p>...</p>" text.
+        # Building with Markup(...) % value also auto-escapes each
+        # interpolated value (unless it's already Markup itself), so a
+        # plate/amount containing "<" or "&" can't break the markup.
         sections = []
         if unmatched_plates:
-            plate_lines = '<br/>'.join(
-                '* %s' % plate for plate in sorted(unmatched_plates))
+            plate_lines = Markup('<br/>').join(
+                Markup('* %s') % plate for plate in sorted(unmatched_plates))
             sections.append(
-                'Patentes que no figuran en el módulo de Flotilla:<br/>%s' % plate_lines)
+                Markup('Patentes que no figuran en el módulo de Flotilla:<br/>%s')
+                % plate_lines)
         if abs(diff) > 0.01:
             amount = formatLang(self.env, diff, currency_obj=move.currency_id)
             sections.append(
-                'Se encontró una diferencia entre el excel y el subtotal '
-                'de la factura por %s' % amount)
+                Markup('Se encontró una diferencia entre el excel y el subtotal '
+                       'de la factura por %s') % amount)
         if sections:
-            move.message_post(body='<p>%s</p>' % '</p><br/><p>'.join(sections))
+            body = Markup('<p>%s</p>') % Markup('</p><br/><p>').join(sections)
+            move.message_post(body=body)
 
     def action_confirm(self):
         self.ensure_one()

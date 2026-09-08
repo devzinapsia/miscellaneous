@@ -532,6 +532,19 @@ class TestEdenredImportWizard(TransactionCase):
         bodies = self._note_bodies(move)
         self.assertTrue(any('Patentes que no figuran' in b and 'NOMATCH' in b for b in bodies))
 
+    def test_note_body_is_rendered_html_not_escaped(self):
+        # Regression: message_post(body=<plain str>) gets HTML-escaped and
+        # shows up as literal "<p>...</p>" text in the chatter - only a
+        # markupsafe.Markup body renders as actual HTML.
+        wizard = self._create_wizard([self._row(Placa='NOMATCH')])
+        move = self._confirm_and_get_move(wizard)
+        note = next(b for b in self._note_bodies(move) if 'Patentes que no figuran' in b)
+        # Odoo's HTML sanitizer normalizes "<br/>" to "<br>" - check for an
+        # actual line-break tag, not the escaped "&lt;br/&gt;" the original
+        # bug produced.
+        self.assertIn('<br', note)
+        self.assertNotIn('&lt;', note)
+
     def test_unmatched_plates_deduplicated_in_note(self):
         rows = [
             self._row(Placa='NOMATCH', **{'No. Transacción': 'T-0001'}),
