@@ -521,6 +521,49 @@ class TestEdenredImportWizard(TransactionCase):
         diff_line = lines.filtered(lambda l: not l.product_id)
         self.assertAlmostEqual(diff_line.price_unit, -50.0, places=2)
 
+    # -- chatter notes --------------------------------------------------------
+
+    def _note_bodies(self, move):
+        return move.message_ids.mapped('body')
+
+    def test_unmatched_plate_note_posted_in_chatter(self):
+        wizard = self._create_wizard([self._row(Placa='NOMATCH')])
+        move = self._confirm_and_get_move(wizard)
+        bodies = self._note_bodies(move)
+        self.assertTrue(any('Patentes que no figuran' in b and 'NOMATCH' in b for b in bodies))
+
+    def test_unmatched_plates_deduplicated_in_note(self):
+        rows = [
+            self._row(Placa='NOMATCH', **{'No. Transacción': 'T-0001'}),
+            self._row(Placa='NOMATCH', **{'No. Transacción': 'T-0002'}),
+        ]
+        wizard = self._create_wizard(rows)
+        move = self._confirm_and_get_move(wizard)
+        note = next(b for b in self._note_bodies(move) if 'Patentes que no figuran' in b)
+        self.assertEqual(note.count('NOMATCH'), 1)
+
+    def test_subtotal_difference_note_posted_in_chatter(self):
+        wizard = self._create_wizard([self._row()], subtotal=1050.0)
+        move = self._confirm_and_get_move(wizard)
+        bodies = self._note_bodies(move)
+        self.assertTrue(any('se encontró una diferencia' in b.lower() for b in bodies))
+
+    def test_no_notes_posted_when_matched_and_subtotal_matches(self):
+        wizard = self._create_wizard([self._row()])
+        move = self._confirm_and_get_move(wizard)
+        bodies = self._note_bodies(move)
+        self.assertFalse(any('Patentes que no figuran' in b for b in bodies))
+        self.assertFalse(any('diferencia' in b.lower() for b in bodies))
+
+    def test_unmatched_plate_and_subtotal_difference_combined_in_one_note(self):
+        wizard = self._create_wizard(
+            [self._row(Placa='NOMATCH')], subtotal=1050.0)
+        move = self._confirm_and_get_move(wizard)
+        note = next(
+            b for b in self._note_bodies(move) if 'Patentes que no figuran' in b)
+        self.assertIn('NOMATCH', note)
+        self.assertIn('se encontró una diferencia', note.lower())
+
     # -- fleet service log --------------------------------------------------
 
     def test_fleet_log_service_created_with_row_data(self):

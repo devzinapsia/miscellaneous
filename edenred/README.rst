@@ -136,6 +136,18 @@ tax lines it originally created).
 which bundles ITC and IDC into it; the net "Impuestos internos" tax line
 is computed as that total minus "Total ITC" minus "Total IDC".
 
+Chatter notes
+-------------
+
+The wizard posts a note on the created bill's chatter when:
+
+* Any row's plate ("Placa") didn't match a ``fleet.vehicle`` - lists every
+  distinct unmatched plate.
+* The sum of the row amounts didn't match the subtotal declared in the
+  wizard - states the amount of the difference line that was added.
+
+Both conditions can appear together in the same note.
+
 Bug Tracker
 ===========
 

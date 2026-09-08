@@ -8,6 +8,7 @@ import pandas as pd
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.misc import formatLang
 
 
 class EdenredImportWizard(models.TransientModel):
@@ -499,6 +500,21 @@ class EdenredImportWizard(models.TransientModel):
             },
         ])
 
+    def _post_import_notes(self, move, unmatched_plates, diff):
+        sections = []
+        if unmatched_plates:
+            plate_lines = '<br/>'.join(
+                '* %s' % plate for plate in sorted(unmatched_plates))
+            sections.append(
+                'Patentes que no figuran en el módulo de Flotilla:<br/>%s' % plate_lines)
+        if abs(diff) > 0.01:
+            amount = formatLang(self.env, diff, currency_obj=move.currency_id)
+            sections.append(
+                'Se encontró una diferencia entre el excel y el subtotal '
+                'de la factura por %s' % amount)
+        if sections:
+            move.message_post(body='<p>%s</p>' % '</p><br/><p>'.join(sections))
+
     def action_confirm(self):
         self.ensure_one()
         if not self.fallback_account_id:
@@ -515,6 +531,7 @@ class EdenredImportWizard(models.TransientModel):
         vehicle_rows = {}
         line_extras = []
         line_taxes = self.env['account.tax']
+        unmatched_plates = set()
 
         for _index, row in df.iterrows():
             row_datetime = self._parse_row_datetime(row)
@@ -528,6 +545,10 @@ class EdenredImportWizard(models.TransientModel):
             })
             if vehicle:
                 vehicle_rows.setdefault(vehicle, []).append((row_datetime, row))
+            else:
+                plate = str(row[self._EXCEL_COLUMN_PLATE]).strip().upper()
+                if plate:
+                    unmatched_plates.add(plate)
             product = self.env['product.product'].browse(vals['product_id'])
             line_taxes |= product.supplier_taxes_id.filtered(
                 lambda t: t.type_tax_use == 'purchase')
@@ -547,6 +568,7 @@ class EdenredImportWizard(models.TransientModel):
         self._sync_vehicles_drivers_and_odometers(vehicle_rows)
         self._create_fleet_log_services(move, line_extras)
         self._attach_source_files(move)
+        self._post_import_notes(move, unmatched_plates, diff)
 
         return {
             'type': 'ir.actions.act_window',
