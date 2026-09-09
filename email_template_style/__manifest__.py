@@ -1,6 +1,6 @@
 {
     "name": "Email Template Style",
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.1.1",
     "category": "Accounting",
     "summary": "Switch Odoo's default email templates between Zinapsia Formal and Informal styles",
     "author": "Zinapsia",
@@ -14,6 +14,6 @@
         "views/res_config_settings_views.xml",
     ],
     "installable": True,
-    "auto_install": False,
+    "auto_install": True,
     "post_init_hook": "post_init_hook",
 }

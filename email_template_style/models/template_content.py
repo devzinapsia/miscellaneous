@@ -3,12 +3,8 @@
 (purchase/self-billing/proforma/helpdesk/auth -- no source document for these).
 
 TEMPLATE_XMLIDS maps each slug to the real mail.template xmlid it overrides.
-RESPONSIBLE_FIELD names the field on the template's model holding the person
-whose name/signature goes in the dynamic signature block. None means the
-template either has no such field on its model (falls back to `user`, the
-acting/sending user -- account.payment, helpdesk rating survey) or keeps its own
-original closing untouched (the auth_signup/auth_totp_mail user-account emails,
-which are not customer/vendor documents and do not carry a "signature" concept).
+The closing signature on every letter-style template is a static
+"El equipo de {company}" line -- no per-user name or personal signature.
 """
 
 TEMPLATE_XMLIDS = {
@@ -32,29 +28,6 @@ TEMPLATE_XMLIDS = {
     "usuario_cuenta_creada": "auth_signup.mail_template_user_signup_account_created",  # Usuarios: Cuenta de Portal Creada
     "portal_invitacion": "auth_signup.portal_set_password_email",  # Usuarios: Invitación a Portal
     "usuario_invitacion_2fa": "auth_totp_mail.mail_template_totp_invite",  # Usuarios: Invitación a Activar 2FA
-}
-
-RESPONSIBLE_FIELD = {
-    "factura": "invoice_user_id",
-    "notas_credito": "invoice_user_id",
-    "pagos": None,
-    "cotizacion_orden_venta": "user_id",
-    "orden_venta_confirmada": "user_id",
-    "orden_venta_confirmacion_pago": "user_id",
-    "compra_solicitud_cotizacion": "user_id",
-    "compra_orden_confirmada": "user_id",
-    "compra_recordatorio": "user_id",
-    "autofactura": "invoice_user_id",
-    "autofactura_nota_credito": "invoice_user_id",
-    "factura_proforma": "user_id",
-    "helpdesk_ticket_recibido": "user_id",
-    "helpdesk_ticket_cerrado": "user_id",
-    "helpdesk_encuesta_satisfaccion": None,
-    "usuario_invitacion": None,
-    "usuario_recordatorio_pendiente": None,
-    "usuario_cuenta_creada": None,
-    "portal_invitacion": None,
-    "usuario_invitacion_2fa": None,
 }
 
 
@@ -90,11 +63,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -136,11 +106,8 @@ FORMAL_CONTENT = {
     </div> 
 
 <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 </div>
 
 <div style="position: relative; left: 25px;">
@@ -179,11 +146,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="user.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(user.signature)">
-                <br/><t t-out="user.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 </div>
 
 <div style="position: relative; left: 25px;">
@@ -276,11 +240,8 @@ FORMAL_CONTENT = {
         </div>
 
         <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
     
 
     <div style="position: relative; left: 25px;">
@@ -330,11 +291,8 @@ FORMAL_CONTENT = {
             Saludos cordiales.
         </div>
         <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
         <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
@@ -559,11 +517,8 @@ FORMAL_CONTENT = {
             Saludos cordiales.
         </div>
         <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
         <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
@@ -593,11 +548,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -639,11 +591,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -683,11 +632,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -719,11 +665,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -755,11 +698,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -792,11 +732,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -844,11 +781,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -878,11 +812,8 @@ FORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -1279,11 +1210,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div><div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div><div>
     <br/></div>
 
     <div style="position: relative; left: 0px;">
@@ -1326,11 +1254,8 @@ INFORMAL_CONTENT = {
     </div> 
 
 <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div><div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div><div>
     <br/></div>
 
     <div style="position: relative; left: 0px;">
@@ -1370,11 +1295,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="user.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(user.signature)">
-                <br/><t t-out="user.signature or ''"></t>
-            </t>
-        </div><div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div><div>
     <br/></div>
 
     <div style="position: relative; left: 0px;">
@@ -1468,11 +1390,8 @@ INFORMAL_CONTENT = {
         </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div><div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div><div>
     <br/></div>
 
     <div style="position: relative; left: 0px;">
@@ -1522,11 +1441,8 @@ INFORMAL_CONTENT = {
             ¡Saludos!
         </div>
             <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div><div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div><div>
     <br/></div>
 
     <div style="position: relative; left: 0px;">
@@ -1752,11 +1668,8 @@ INFORMAL_CONTENT = {
             ¡Saludos!
         </div>
         <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div><div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div><div>
     <br/></div>
 
     <div style="position: relative; left: 0px;">
@@ -1788,11 +1701,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -1834,11 +1744,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -1878,11 +1785,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -1914,11 +1818,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -1950,11 +1851,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.invoice_user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.invoice_user_id.signature)">
-                <br/><t t-out="object.invoice_user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -1987,11 +1885,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -2039,11 +1934,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
@@ -2073,11 +1965,8 @@ INFORMAL_CONTENT = {
     </div>
 
     <div>
-            <t t-out="object.user_id.name or ''">Nombre Apellido</t>
-            <t t-if="not is_html_empty(object.user_id.signature)">
-                <br/><t t-out="object.user_id.signature or ''"></t>
-            </t>
-        </div>
+        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+    </div>
 
     <div style="position: relative; left: 25px;">
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
