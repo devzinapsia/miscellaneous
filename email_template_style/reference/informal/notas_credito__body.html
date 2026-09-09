@@ -1,0 +1,43 @@
+//Cuerpo 
+
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border: none; box-sizing: border-box; margin: 0px; padding: 0px; font-size: 13px;">
+        Hola&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+
+        Te enviamos la siguiente 
+        <t t-if="object.name">
+            nota de crédito <span style="font-weight:bold;" t-out="object.name or ''">RINV/2021/05/0001</span>
+        </t>
+        <t t-else="">
+            nota de crédito
+        </t>
+        <t t-if="object.reversed_entry_id">
+            (con referencia: <t t-out="object.reversed_entry_id.name or ''"></t>)
+        </t>
+        <t t-elif="object.invoice_origin">
+            (con referencia: <t t-out="object.invoice_origin or ''"></t>)
+        </t>
+        por un importe total de 
+        <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''">
+            $143,750.00
+        </span>.
+        <br/><br/>
+    </p>
+
+    <div>
+        Por favor, no dudes en contactarnos si tenés alguna consulta sobre esta transacción.
+        <br/><br/>
+        ¡Saludos!
+    </div> 
+
+<div><br/>
+        <strong style="border-radius:0px;border-style:none;border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border: none; padding: 0px; margin: 0px; box-sizing: border-box; font-weight: bolder;">
+            El equipo de Zinapsia</strong></div><div>
+    <br/></div>
+
+    <div style="position: relative; left: 0px;">
+  <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-height: 100px; height: auto; width: 176px;" alt="Logo de la empresa" width="176"/>
+</div>
+        <div><br/></div>
+    </div>

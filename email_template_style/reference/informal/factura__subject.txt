@@ -1,0 +1,2 @@
+//Asunto
+{{ object.company_id.name }} - {{ object.name or 'n/a' }}

@@ -1,0 +1,2 @@
+//Asunto
+{{ object.company_id.name }} - {{ 'Recibo' if object.payment_type == 'inbound' else 'Orden de pago' }} {{ object.name }}

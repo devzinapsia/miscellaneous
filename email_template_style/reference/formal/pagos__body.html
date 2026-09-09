@@ -1,0 +1,40 @@
+//Cuerpo 
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border-radius:0px; border-style:none; box-sizing:border-box;&#10;              border-width:0px; margin: 0px; padding: 0px; font-size: 13px;">
+        Estimado&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+
+        <t t-if="object.payment_type == 'inbound'">
+            Le enviamos el recibo de cobranza 
+            <span style="font-weight:bold;" t-out="(object.name or '').replace('/','-') or ''">RE00001-00000001</span>
+            por un total de 
+            <span style="font-weight:bold;" t-out="format_amount(object.amount, object.currency_id) or ''">$ 1000.00</span>.
+        </t>
+
+        <t t-if="object.payment_type == 'outbound'">
+            Le enviamos la orden de pago 
+            <span style="font-weight:bold;" t-out="(object.name or '').replace('/','-') or ''">P00001-00000001</span>
+            por un total de 
+            <span style="font-weight:bold;" t-out="format_amount(object.amount, object.currency_id) or ''">$ 1000.00</span>.
+        </t>
+    </p>
+
+    <div><br/></div>
+
+    <div>
+        Por favor, no dude en contactarnos si tiene alguna consulta sobre esta transacción.
+        <br/><br/>
+        Saludos cordiales.
+    </div>
+
+    <div><br/>
+        <strong style="border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border-radius:0px; border-style:none; padding:0px; margin:0px;&#10;                       box-sizing:border-box; border-width:0px; font-weight:bolder;">
+            El equipo de Umbrella Software
+        </strong>
+    </div>
+</div>
+
+<div style="position: relative; left: 25px;">
+    <img src="/logo.png?company=1" style="border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border-style: none; padding: 0px; margin: 0px; box-sizing: border-box;&#10;                border-width: 0px; border-radius: 0px; vertical-align: middle;&#10;                max-height: 100px; width: 133.328px; height: 100px;" alt="Logo de la empresa" width="133.328" height="100"/>
+    <div><br/></div>
+</div>

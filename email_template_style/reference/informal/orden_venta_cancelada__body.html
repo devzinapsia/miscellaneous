@@ -1,0 +1,29 @@
+//Cuerpo
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border-radius:0px; border-style:none; box-sizing:border-box;&#10;              border-width:0px; margin: 0px; padding: 0px; font-size: 13px;">
+        <t t-set="doc_name" t-value="object.type_name"></t>
+        Hola&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+        Tené en cuenta que tu
+        <t t-out="doc_name or ''">cotización</t> <strong t-out="object.name or ''">S00052</strong>
+        <t t-if="object.origin">
+            (con referencia: <t t-out="object.origin or ''">S00052</t> )
+        </t>
+        fue cancelada. Ya ya no te cobrarán cargos por esta orden.
+        Si es necesario realizar algún reembolso, lo haremos a la brevedad posible.
+        <br/><br/>
+        </p><div>
+            Por favor, no dudes en contactarnos si tenés alguna consulta sobre esta transacción.
+            <br/><br/>
+            ¿Saludos!
+        </div>
+        <div><br/>
+        <strong style="border-radius:0px;border-style:none;border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border: none; padding: 0px; margin: 0px; box-sizing: border-box; font-weight: bolder;">
+            El equipo de Zinapsia</strong></div><div>
+    <br/></div>
+
+    <div style="position: relative; left: 0px;">
+  <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-height: 100px; height: auto; width: 176px;" alt="Logo de la empresa" width="176"/>
+</div>
+        <div><br/></div>
+    </div>

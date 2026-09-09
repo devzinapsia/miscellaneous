@@ -1,0 +1,44 @@
+//Cuerpo 
+
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border: none; box-sizing: border-box; margin: 0px; padding: 0px; font-size: 13px;">
+        Estimado&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+
+        Le enviamos la siguiente 
+        <t t-if="object.name">
+            nota de crédito <span style="font-weight:bold;" t-out="object.name or ''">RINV/2021/05/0001</span>
+        </t>
+        <t t-else="">
+            nota de crédito
+        </t>
+        <t t-if="object.reversed_entry_id">
+            (con referencia: <t t-out="object.reversed_entry_id.name or ''"></t>)
+        </t>
+        <t t-elif="object.invoice_origin">
+            (con referencia: <t t-out="object.invoice_origin or ''"></t>)
+        </t>
+        por un importe total de 
+        <span style="font-weight:bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''">
+            $143,750.00
+        </span>.
+        <br/><br/>
+    </p>
+
+    <div>
+        Por favor, no dude en contactarnos si tiene alguna consulta sobre esta transacción.
+        <br/><br/>
+        Saludos cordiales.
+    </div> 
+
+<div><br/>
+        <strong style="border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border-radius:0px; border-style:none; padding:0px; margin:0px;&#10;                       box-sizing:border-box; border-width:0px; font-weight:bolder;">
+            El equipo de Umbrella Software
+        </strong>
+    </div>
+</div>
+
+<div style="position: relative; left: 25px;">
+    <img src="/logo.png?company=1" style="border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border-style: none; padding: 0px; margin: 0px; box-sizing: border-box;&#10;                border-width: 0px; border-radius: 0px; vertical-align: middle;&#10;                max-height: 100px; width: 133.328px; height: 100px;" alt="Logo de la empresa" width="133.328" height="100"/>
+    <div><br/></div>
+</div>

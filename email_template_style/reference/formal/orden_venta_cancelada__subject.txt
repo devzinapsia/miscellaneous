@@ -1,0 +1,2 @@
+//Asunto
+{{ object.company_id.name }} - {{ object.type_name }} cancelada {{ object.name or 'n/a' }}

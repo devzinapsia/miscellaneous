@@ -1,0 +1,2 @@
+//Asunto
+{{ object.company_id.name }} - {{ object.state in ('draft', 'sent') and (ctx.get('proforma') and 'Proforma' or 'Cotización') or 'Orden' }} {{ object.name or 'n/a' }}

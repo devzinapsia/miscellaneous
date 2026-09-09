@@ -1,0 +1,48 @@
+//Cuerpo
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border-radius:0px; border-style:none; box-sizing:border-box;&#10;              border-width:0px; margin: 0px; padding: 0px; font-size: 13px;">
+        <t t-set="transaction_sudo" t-value="object.get_portal_last_transaction()"></t>
+        Hola&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+        El pago con la referencia
+        <span style="font-weight:bold;" t-out="transaction_sudo.reference or ''">SOOO49</span>
+        por un importe total de
+        <span style="font-weight:bold;" t-out="format_amount(transaction_sudo.amount, object.currency_id) or ''">$ 10.00</span>
+        para la orden
+        <span style="font-weight:bold;" t-out="object.name or ''">S00049</span>
+        <t t-if="transaction_sudo and transaction_sudo.state == 'pending'">
+            está pendiente.
+            <br/>
+            <t t-if="object.currency_id.compare_amounts(object.amount_paid + transaction_sudo.amount, object.amount_total) &gt;= 0 and object.state in ('draft', 'sent')">
+                Confirmaremos tu orden una vez recibido el pago.
+            </t>
+            <t t-else="">
+                Una vez que se confirmen, faltarán
+                <span style="font-weight:bold;" t-out="format_amount(object.amount_total - object.amount_paid - transaction_sudo.amount, object.currency_id) or ''">$ 10.00</span>
+                por pagar.
+            </t>
+        </t>
+        <t t-else="">
+            quedó confirmado.
+            <t t-if="object.currency_id.compare_amounts(object.amount_paid, object.amount_total) &lt; 0">
+                <br/>
+                Saldo pendiente de pago:
+               <span style="font-weight:bold;" t-out="format_amount(object.amount_total - object.amount_paid, object.currency_id) or ''">$ 10.00</span>.                
+            </t>
+        </t>
+        <br/><br/>
+        </p><div>
+            Por favor, no dudes en contactarnos si tenés alguna consulta sobre esta transacción.
+            <br/><br/>
+            ¡Saludos!
+        </div>
+        <div><br/>
+        <strong style="border-radius:0px;border-style:none;border-left-width:0px;border-bottom-width:0px;border-right-width:0px;border-top-width:0px;border: none; padding: 0px; margin: 0px; box-sizing: border-box; font-weight: bolder;">
+            El equipo de Zinapsia</strong></div><div>
+    <br/></div>
+
+    <div style="position: relative; left: 0px;">
+  <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-height: 100px; height: auto; width: 176px;" alt="Logo de la empresa" width="176"/>
+</div>
+        <div><br/></div>
+    </div>

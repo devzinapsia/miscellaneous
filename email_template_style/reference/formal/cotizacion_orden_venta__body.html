@@ -1,0 +1,95 @@
+//Cuerpo 
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border-radius:0px; border-style:none; box-sizing:border-box;&#10;              border-width:0px; margin: 0px; padding: 0px; font-size: 13px;">
+
+        <t t-set="doc_name" t-value="'cotización' if object.state in ('draft', 'sent') else 'orden'"></t>
+
+        Estimado&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+
+        <t t-if="ctx.get('proforma')">
+            Le enviamos la factura proforma invoice para la 
+            <t t-out="doc_name or ''">cotización</t> 
+            <span style="font-weight: bold;" t-out="object.name or ''">S00052</span>
+            <t t-if="object.origin">
+                (con referencia: <t t-out="object.origin or ''"></t>)
+            </t>
+            por un total de 
+            <span style="font-weight: bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''">$10.00</span>.
+        </t>
+
+        <t t-else="">
+            <t t-set="is_quotation" t-value="object.state in ('draft', 'sent')"></t>
+
+            <t t-if="is_quotation">
+                Le enviamos la cotización 
+                <span t-att-style="'font-weight: bold;'">
+                    <t t-esc="object.name or ''"></t>
+                </span>
+                <t t-if="object.origin">
+                    (con referencia: <t t-esc="object.origin or ''"></t>)
+                </t>
+                por un total de 
+                <span t-att-style="'font-weight: bold;'">
+                    <t t-esc="format_amount(object.amount_total, object.currency_id) or ''"></t>
+                </span>.
+            </t>
+
+            <t t-else="">
+                Registramos su orden 
+                <span t-att-style="'font-weight: bold;'">
+                    <t t-esc="object.name or ''"></t>
+                </span>
+                <t t-if="object.origin">
+                    (con referencia: <t t-esc="object.origin or ''"></t>)
+                </t>
+                por un total de 
+                <span t-att-style="'font-weight: bold;'">
+                    <t t-esc="format_amount(object.amount_total, object.currency_id) or ''"></t>
+                </span>.
+            </t>
+        </t>
+
+        <br/>
+
+        <t t-set="documents" t-value="object._get_product_documents()"></t>
+
+        <t t-if="documents">
+            <br/>
+            <t t-if="len(documents) &gt; 1">
+                Aquí hay algunos documentos adicionales que podrían interesarle:
+            </t>
+            <t t-else="">
+                Aquí hay otro documento que podría interesarle:
+            </t>
+
+            <ul style="border-radius:0px; border-style:none; padding:0 0 0 32px; margin:0px 0 0px 0;&#10;                       box-sizing:border-box; border-width:0px; list-style-type:disc; margin-bottom: 0;">
+                <t t-foreach="documents" t-as="document">
+                    <li style="font-size: 13px;">
+                        <a t-out="document.ir_attachment_id.name" t-att-href="object.get_portal_url('/document/' + str(document.id))" t-att-target="target" style="color: #374151; text-decoration: none; border: none;">
+                        </a>
+                    </li>
+                </t>
+            </ul>
+        </t>
+
+        <br/>
+
+        </p><div>
+            Por favor, no dude en contactarnos si tiene alguna consulta sobre esta transacción.
+            <br/><br/>
+            Saludos cordiales.
+        </div>
+
+        <div><br/>
+            <strong style="font-weight:bolder; border: none; margin: 0; padding: 0;">
+                El equipo de Umbrella Software
+            </strong>
+        </div>
+    
+
+    <div style="position: relative; left: 25px;">
+        <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box;&#10;                    border-radius: 0px; vertical-align: middle;&#10;                    max-height: 100px; width: 133.328px; height: 100px;" alt="Logo de la empresa" width="133.328" height="100"/>
+        <div><br/></div>
+    </div>
+</div>

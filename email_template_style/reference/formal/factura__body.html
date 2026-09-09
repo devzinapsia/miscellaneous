@@ -1,0 +1,31 @@
+//Cuerpo 
+<div style="margin: 0px; padding: 0px;" data-oe-version="1.2">
+    <p style="border: none; box-sizing: border-box; margin: 0px; padding: 0px; font-size: 13px;">
+        Estimado&nbsp;<t t-out="object.partner_id.name or ''">NombreEmpresa</t>.
+        <br/><br/>
+
+        Le enviamos el comprobante 
+        <span style="font-weight: bold;" t-out="(object.name or '').replace('/', '-') or ''">FA-A00001-00000001</span>
+        por un total de 
+        <span style="font-weight: bold;" t-out="format_amount(object.amount_total, object.currency_id) or ''">$ 1000.00</span>.
+    </p>
+
+    <div><br/></div>
+
+    <div>
+        Por favor, no dude en contactarnos si tiene alguna consulta sobre esta transacción.
+        <br/><br/>
+        Saludos cordiales.
+    </div>
+
+    <div><br/>
+        <strong style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; font-weight: bolder;">
+            El equipo de Umbrella Software
+        </strong>
+    </div>
+
+    <div style="position: relative; left: 25px;">
+        <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box;&#10;                    border-radius: 0px; vertical-align: middle; max-height: 100px;&#10;                    width: 133.328px; height: 100px;" alt="Logo de la empresa" width="133.328" height="100"/>
+        <div><br/></div>
+    </div>
+</div>

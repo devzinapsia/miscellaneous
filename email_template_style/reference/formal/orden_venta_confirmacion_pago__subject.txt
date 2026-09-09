@@ -1,0 +1,2 @@
+//Asunto
+{{ object.company_id.name }} - {{ (object.get_portal_last_transaction().state == 'pending') and 'Orden pendiente' or 'Orden' }} {{ object.name or 'n/a' }}
