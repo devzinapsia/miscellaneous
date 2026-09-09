@@ -62,11 +62,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -105,12 +109,16 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div> 
 
-<div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+<div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
+
+    <div><br/></div>
 </div>
 
-<div style="position: relative; left: 25px;">
+<div>
     <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
     <div><br/></div>
 </div>""",
@@ -145,12 +153,16 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
+
+    <div><br/></div>
 </div>
 
-<div style="position: relative; left: 25px;">
+<div>
     <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
     <div><br/></div>
 </div>""",
@@ -239,12 +251,16 @@ FORMAL_CONTENT = {
             Saludos cordiales.
         </div>
 
-        <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
+
+    <div><br/></div>
     
 
-    <div style="position: relative; left: 25px;">
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -290,10 +306,14 @@ FORMAL_CONTENT = {
             <br/><br/>
             Saludos cordiales.
         </div>
-        <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
-        <div style="position: relative; left: 25px;">
+
+    <div><br/></div>
+        <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -516,10 +536,14 @@ FORMAL_CONTENT = {
             <br/><br/>
             Saludos cordiales.
         </div>
-        <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
-        <div style="position: relative; left: 25px;">
+
+    <div><br/></div>
+        <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
        </div>
@@ -547,11 +571,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -590,11 +618,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -631,11 +663,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -664,11 +700,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -697,11 +737,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -731,11 +775,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -780,11 +828,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -811,11 +863,15 @@ FORMAL_CONTENT = {
         Saludos cordiales.
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1209,12 +1265,16 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
-    </div><div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
+    </div>
+
+    <div><br/></div><div>
     <br/></div>
 
-    <div style="position: relative; left: 0px;">
+    <div>
   <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
 </div>
         <div><br/></div>
@@ -1253,12 +1313,16 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div> 
 
-<div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
-    </div><div>
+<div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
+    </div>
+
+    <div><br/></div><div>
     <br/></div>
 
-    <div style="position: relative; left: 0px;">
+    <div>
   <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
 </div>
         <div><br/></div>
@@ -1294,12 +1358,16 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
-    </div><div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
+    </div>
+
+    <div><br/></div><div>
     <br/></div>
 
-    <div style="position: relative; left: 0px;">
+    <div>
   <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
 </div>
         <div><br/></div>
@@ -1389,12 +1457,16 @@ INFORMAL_CONTENT = {
             ¡Saludos!
         </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
-    </div><div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
+    </div>
+
+    <div><br/></div><div>
     <br/></div>
 
-    <div style="position: relative; left: 0px;">
+    <div>
   <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
 </div>
         <div><br/></div>
@@ -1440,12 +1512,16 @@ INFORMAL_CONTENT = {
             <br/><br/>
             ¡Saludos!
         </div>
-            <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
-    </div><div>
+            <div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
+    </div>
+
+    <div><br/></div><div>
     <br/></div>
 
-    <div style="position: relative; left: 0px;">
+    <div>
   <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
 </div>
         <div><br/></div>
@@ -1667,12 +1743,16 @@ INFORMAL_CONTENT = {
             <br/><br/>
             ¡Saludos!
         </div>
-        <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
-    </div><div>
+        <div><br/></div>
+
+    <div>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
+    </div>
+
+    <div><br/></div><div>
     <br/></div>
 
-    <div style="position: relative; left: 0px;">
+    <div>
   <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
 </div>
         <div><br/></div>
@@ -1700,11 +1780,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1743,11 +1827,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1784,11 +1872,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1817,11 +1909,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1850,11 +1946,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1884,11 +1984,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1933,11 +2037,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
@@ -1964,11 +2072,15 @@ INFORMAL_CONTENT = {
         ¡Saludos!
     </div>
 
+    <div><br/></div>
+
     <div>
-        El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t>
+        <strong>El equipo de <t t-out="object.company_id.name or ''">NombreEmpresa</t></strong>
     </div>
 
-    <div style="position: relative; left: 25px;">
+    <div><br/></div>
+
+    <div>
         <img src="/logo.png?company=1" style="border: none; padding: 0px; margin: 0px; box-sizing: border-box; border-radius: 0px; vertical-align: middle; max-width: 180px; max-height: 100px; width: auto; height: auto;" alt="Logo de la empresa"/>
         <div><br/></div>
     </div>
