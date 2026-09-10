@@ -45,15 +45,16 @@ Payments** section, under **Payment due notifications**:
   that country currently shares the same UTC offset (e.g. Argentina);
   left empty otherwise (e.g. the US, Brazil) -- it is never assumed from
   the server, so set it explicitly if it is not suggested.
-* **Users to notify**: the users who receive notices. This list is
+* **Users to notify**: the users who receive notices, restricted to
+  internal users (portal/public users are not offered). This list is
   global per company; it does not vary by vendor or journal.
-* **Accounts to report balance**: optional accounts (normally of type
-  Bank and Cash) whose current balance is added at the foot of every
-  notification email, as a quick reference for whether there are enough
-  funds to pay. Leave empty to not include any balance information. This
-  is only a reference: it does not account for pending collections,
-  other scheduled payments, or checks in transit -- it is most useful
-  when a notice is for "today".
+* **Accounts to report balance**: optional accounts, restricted to
+  active accounts of type Bank and Cash, whose current balance is added
+  at the foot of every notification email, as a quick reference for
+  whether there are enough funds to pay. Leave empty to not include any
+  balance information. This is only a reference: it does not account
+  for pending collections, other scheduled payments, or checks in
+  transit -- it is most useful when a notice is for "today".
 
 Usage
 =====

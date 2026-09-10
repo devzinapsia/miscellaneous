@@ -98,6 +98,18 @@ class TestAccountPaymentDueNotify(AccountTestInvoicingCommon):
         self.company._send_payment_due_notices(today)
         self.assertEqual(len(self._get_notify_messages()), 1)
 
+    def test_digest_uses_company_language_not_acting_user_language(self):
+        # The cron runs as base.user_root, whose language is not
+        # necessarily the company's. Composing the digest must follow
+        # the company's own language (falling back to it here), not
+        # whatever language happens to be in the ambient context.
+        self.company.partner_id.lang = "en_US"
+        today = fields.Date.today()
+        move, line = self._create_payable_bill(today + timedelta(days=3))
+        self.company.with_context(lang="es_AR")._send_payment_due_notices(today)
+        message = self._get_notify_messages()
+        self.assertEqual(message.subject, "Payables due in 3 days")
+
     def test_multiple_documents_batched_into_one_message(self):
         today = fields.Date.today()
         move_1, line_1 = self._create_payable_bill(today + timedelta(days=3))

@@ -58,6 +58,7 @@ class ResCompany(models.Model):
         "company_id",
         "user_id",
         string="Users to notify",
+        domain=[("share", "=", False)],
         help="Users notified before a payable journal item becomes due. "
         "This list is global per company; it does not vary by vendor or "
         "journal.",
@@ -68,6 +69,7 @@ class ResCompany(models.Model):
         "company_id",
         "account_id",
         string="Accounts to report balance",
+        domain=[("account_type", "=", "asset_cash"), ("active", "=", True)],
         help="Optional accounts (normally of type Bank and Cash) whose "
         "current balance is added at the foot of every notification "
         "email, as a quick reference for whether there are enough funds "
@@ -154,6 +156,13 @@ class ResCompany(models.Model):
         of one message per document.
         """
         self.ensure_one()
+        # The cron runs as base.user_root, whose language is not
+        # necessarily the company's: without this, every notice would be
+        # composed in whatever language that technical user happens to
+        # have (commonly English) regardless of the company's own.
+        lang = self.partner_id.lang or self.env.user.lang
+        self = self.with_context(lang=lang)
+        notice_lines = notice_lines.with_context(lang=lang)
         if days == 0:
             subject = _("Payables due today")
             intro = _("The following payable documents are due today.")
