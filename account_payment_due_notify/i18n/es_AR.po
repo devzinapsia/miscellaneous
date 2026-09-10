@@ -56,11 +56,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_enabled
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_enabled
 msgid "Notify on payment due dates"
 msgstr "Notifica ante vencimientos de pago"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_enabled
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_enabled
 msgid ""
 "Automatically notify the users configured below before a payable journal "
 "item (vendor bill, vendor credit note, or manual entry with a payable "
@@ -73,11 +75,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_days_first
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_days_first
 msgid "Days before due date (first notice)"
 msgstr "Días antes del vencimiento - primer aviso"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_days_first
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_days_first
 msgid ""
 "Number of days before the due date to send the first notice. 0 means the "
 "same day it is due."
@@ -87,11 +91,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_second_enabled
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_second_enabled
 msgid "Send a second notice"
 msgstr "Enviar un segundo aviso"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_second_enabled
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_second_enabled
 msgid ""
 "If unchecked, only the first notice above is ever sent; the days "
 "configured for the second notice are not evaluated at all."
@@ -101,11 +107,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_days_second
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_days_second
 msgid "Days before due date (second notice)"
 msgstr "Días antes del vencimiento - segundo aviso"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_days_second
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_days_second
 msgid ""
 "Number of days before the due date to send the second notice. 0 means "
 "the same day it is due. Only used if 'Send a second notice' is checked."
@@ -116,11 +124,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_time
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_time
 msgid "Notification time"
 msgstr "Hora aproximada de envío"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_time
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_time
 msgid ""
 "Approximate local time of day, in the timezone below, at which notices "
 "are sent. The check runs every 30 minutes, so the actual send time can "
@@ -150,11 +160,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_user_ids
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_user_ids
 msgid "Users to notify"
 msgstr "Usuarios a notificar"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_user_ids
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_user_ids
 msgid ""
 "Users notified before a payable journal item becomes due. This list is "
 "global per company; it does not vary by vendor or journal."
@@ -165,11 +177,13 @@ msgstr ""
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_res_company__payment_due_notify_balance_account_ids
+#: model:ir.model.fields,field_description:account_payment_due_notify.field_res_config_settings__payment_due_notify_balance_account_ids
 msgid "Accounts to report balance"
 msgstr "Cuentas para informar saldo"
 
 #. module: account_payment_due_notify
 #: model:ir.model.fields,help:account_payment_due_notify.field_res_company__payment_due_notify_balance_account_ids
+#: model:ir.model.fields,help:account_payment_due_notify.field_res_config_settings__payment_due_notify_balance_account_ids
 msgid ""
 "Optional accounts (normally of type Bank and Cash) whose current "
 "balance is added at the foot of every notification email, as a quick "
