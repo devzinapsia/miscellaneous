@@ -17,6 +17,16 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: account_payment_due_notify
+#: model:ir.module.module,shortdesc:base.module_account_payment_due_notify
+msgid "Payment Due Notifications"
+msgstr "Notificaciones de vencimientos de pago"
+
+#. module: account_payment_due_notify
+#: model:ir.module.module,summary:base.module_account_payment_due_notify
+msgid "Automatically notify configured users before payable journal items become due."
+msgstr "Notifica automáticamente a los usuarios configurados antes de que venzan comprobantes a pagar."
+
+#. module: account_payment_due_notify
 #: model:ir.model.fields,field_description:account_payment_due_notify.field_account_move_line__payment_due_notice_1_sent
 msgid "First payment due notice sent"
 msgstr "Primer aviso de vencimiento enviado"
