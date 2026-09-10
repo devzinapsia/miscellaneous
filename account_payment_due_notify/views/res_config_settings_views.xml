@@ -14,12 +14,10 @@
                             <label for="payment_due_notify_days_first" class="col-lg-6 o_light_label"/>
                             <field name="payment_due_notify_days_first"/>
                         </div>
-                        <div class="row mt8 o_setting_box">
-                            <div class="o_setting_left_pane">
-                                <field name="payment_due_notify_second_enabled"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="payment_due_notify_second_enabled"/>
+                        <div class="mt8 d-flex">
+                            <field name="payment_due_notify_second_enabled"/>
+                            <div>
+                                <label for="payment_due_notify_second_enabled"/><br/>
                             </div>
                         </div>
                         <div class="row mt8" invisible="not payment_due_notify_second_enabled">
