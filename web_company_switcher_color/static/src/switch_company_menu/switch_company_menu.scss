@@ -1,13 +1,16 @@
 // Systray button: background painted with the active company color(s).
 // The colors themselves come from inline CSS variables set by the patch.
+// The navbar entry has a transparent border: size the background from the
+// border box, otherwise the stripes gradient repeats under that border and
+// the last/first stripe shows up as a thin line on the opposite edge.
 .o_main_navbar .o_switch_company_menu .o_company_color_switcher {
-    background: var(--o-company-bg);
+    background: var(--o-company-bg) border-box;
     color: var(--o-company-fg);
 
     &:hover,
     &:focus,
     &.show {
-        background: var(--o-company-bg);
+        background: var(--o-company-bg) border-box;
         color: var(--o-company-fg);
         filter: brightness(0.93);
     }

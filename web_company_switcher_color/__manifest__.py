@@ -1,6 +1,6 @@
 {
     "name": "Color de empresa activa",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "summary": "Muestra el color de cada empresa en el selector de empresas "
     "para identificar a simple vista cuáles están activas.",
     "author": "Zinapsia",
