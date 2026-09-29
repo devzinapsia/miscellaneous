@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web.SwitchCompanyMenu" t-inherit-mode="extension">
+        <xpath expr="//button[@data-hotkey='shift+u']" position="attributes">
+            <attribute name="t-att-class">{
+                'o_company_color_switcher': companyColorStyle,
+                'o_company_color_multi': companyColorStyle and companyColorStyle.multiple,
+            }</attribute>
+            <attribute name="t-att-style">companyColorButtonStyle</attribute>
+            <attribute name="t-att-title">companyColorButtonTitle</attribute>
+        </xpath>
+    </t>
+
+    <t t-inherit="web.SwitchCompanyItem" t-inherit-mode="extension">
+        <!-- Native classes are kept as-is for companies without a color;
+             the vertical border is dropped on colored cells so the colored
+             blocks of consecutive rows read as one continuous column. -->
+        <xpath expr="//div[@role='menuitemcheckbox']" position="attributes">
+            <attribute name="class" remove="border-end" separator=" "/>
+            <attribute name="t-att-class">{
+                'border-end': !companyColor,
+                'border-primary': isCompanySelected and !companyColor,
+                'disabled': !isCompanyAllowed,
+                'o_company_color_cell': companyColor,
+            }</attribute>
+            <attribute name="t-att-style">companyColorCellStyle</attribute>
+        </xpath>
+    </t>
+
+</templates>

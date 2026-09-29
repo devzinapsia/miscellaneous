@@ -1,0 +1,78 @@
+// Systray button: background painted with the active company color(s).
+// The colors themselves come from inline CSS variables set by the patch.
+.o_main_navbar .o_switch_company_menu .o_company_color_switcher {
+    background: var(--o-company-bg);
+    color: var(--o-company-fg);
+
+    &:hover,
+    &:focus,
+    &.show {
+        background: var(--o-company-bg);
+        color: var(--o-company-fg);
+        filter: brightness(0.93);
+    }
+
+    .oe_topbar_name,
+    .fa {
+        color: inherit;
+    }
+
+    // Several companies: the text sits on stripes of different colors, so a
+    // thin halo in the opposite color keeps it readable on any of them.
+    &.o_company_color_multi {
+        text-shadow:
+            0 0 2px var(--o-company-shadow),
+            0 0 1px var(--o-company-shadow);
+    }
+}
+
+// Dropdown rows: the checkbox column becomes a solid block of the company
+// color, full row height and fixed width, forming a continuous color column.
+// Also used by the mobile burger menu, which renders the same items.
+.o_switch_company_menu_items .o_switch_company_item .o_company_color_cell[role="menuitemcheckbox"] {
+    display: flex;
+    flex: 0 0 40px;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    align-self: stretch;
+    border-radius: 0;
+    background-color: var(--o-company-bg);
+
+    > .btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    // White box with a dark border, readable on any company color.
+    .fa {
+        width: 1.05em;
+        height: 1.05em;
+        padding: 0;
+        line-height: 1;
+        text-align: center;
+        border-radius: 2px;
+        background-color: $white;
+        box-shadow: 0 0 0 1px $gray-900;
+    }
+
+    .fa-square-o::before {
+        // The outline glyph would draw a second border inside the box.
+        content: none;
+    }
+
+    // Plain tick (keeping Odoo's primary color) instead of the filled square
+    // glyph, which looks like a small blob once drawn inside the white box.
+    .fa-check-square {
+        font-size: 0.9em;
+        width: 1.25em;
+        height: 1.25em;
+        line-height: 1.25em;
+
+        &::before {
+            content: "\f00c"; // fa-check
+        }
+    }
+}

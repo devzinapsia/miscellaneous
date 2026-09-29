@@ -7,6 +7,7 @@ Este repositorio contiene una colección de módulos y herramientas para **Odoo 
 | Módulo | Descripción | Estado |
 | :--- | :--- | :--- |
 | [**ypf_route**](./ypf_route) | Importación automática de facturas desde planillas de YPF Ruta. | ✅ Estable |
+| [**web_company_switcher_color**](./web_company_switcher_color) | Color de empresa activa: pinta el selector de empresas con el color de cada empresa. | ✅ Estable |
 | *Próximamente* | *Nuevas herramientas en desarrollo...* | 🛠️ |
 
 ## 🛠️ Instalación General
