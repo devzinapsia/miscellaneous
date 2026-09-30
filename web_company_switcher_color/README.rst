@@ -24,8 +24,8 @@ luminance of the background, for readable contrast on any color.
 .. image:: https://raw.githubusercontent.com/devzinapsia/miscellaneous/19.0/web_company_switcher_color/static/description/switcher_menu.png
    :alt: Company switcher dropdown with a color block per company
 
-.. image:: https://raw.githubusercontent.com/devzinapsia/miscellaneous/19.0/web_company_switcher_color/static/description/switcher_stripes.png
-   :alt: Systray button striped with two selected companies
+.. image:: https://raw.githubusercontent.com/devzinapsia/miscellaneous/19.0/web_company_switcher_color/static/description/switcher_single.png
+   :alt: Systray button painted with the color of the only selected company
 
 **Table of contents**
 
