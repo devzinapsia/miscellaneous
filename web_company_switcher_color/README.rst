@@ -21,7 +21,7 @@ obvious at a glance:
 Text color is chosen automatically (black or white) from the WCAG relative
 luminance of the background, for readable contrast on any color.
 
-.. image:: https://raw.githubusercontent.com/devzinapsia/miscellaneous/19.0/web_company_switcher_color/static/description/switcher_menu.png
+.. image:: https://raw.githubusercontent.com/devzinapsia/miscellaneous/19.0/web_company_switcher_color/static/description/switcher_dropdown.png
    :alt: Company switcher dropdown with a color block per company
 
 .. image:: https://raw.githubusercontent.com/devzinapsia/miscellaneous/19.0/web_company_switcher_color/static/description/switcher_single.png
