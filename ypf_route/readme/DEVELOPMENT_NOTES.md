@@ -19,8 +19,8 @@ ypf_route/
 ├── security/ir.model.access.csv
 ├── static/src/js/ypf_list_button.js
 ├── static/src/xml/ypf_list_button.xml
-├── views/account_move_views.xml   (VACÍO, 0 bytes, y NO está listado en
-│                                    manifest "data" — archivo muerto/sin uso)
+├── static/tests/tours/ypf_list_button_tour.js   (19.0)
+├── tests/                                       (wizard + tours del botón)
 └── wizard/
     ├── __init__.py
     ├── ypf_import_wizard.py       (toda la lógica de negocio vive acá)
@@ -28,8 +28,7 @@ ypf_route/
     └── ypf_menu.xml
 ```
 
-No hay carpeta `tests/` — el módulo no tiene tests automatizados.
-No hay carpeta `i18n/` — todos los strings están hardcodeados en español,
+Desde 18.0.1.0.3 hay `tests/` (ver sección 5). No hay carpeta `i18n/` — todos los strings están hardcodeados en español,
 ya sea en el código Python (`raise UserError("...")`) o en los `string=`
 de las vistas.
 
@@ -67,10 +66,13 @@ Campos del wizard:
 Hay dos formas de abrir el wizard:
 1. Menú `Contabilidad > Proveedores > Nueva factura de YPF`
    (`wizard/ypf_menu.xml`, bajo `account.menu_finance_payables`).
-2. Botón "Nueva factura de YPF" inyectado en el list view de
-   `account.move` vía JS (`ypf_list_button.js` + `.xml`), agregado con un
-   `t-inherit` de `web.ListView` que muestra el botón solo cuando
-   `model.resModel === 'account.move'`.
+2. Botón "Nueva factura de YPF" en la lista de facturas de proveedor.
+   **Desde 19.0.1.0.4** se hace con `patch()` sobre
+   `AccountMoveListController` (vista `account_tree` de `account`, la que
+   usa la lista de facturas) y una extensión de la plantilla
+   `account.AccountMoveListView.Buttons`; solo se muestra si
+   `context.default_move_type == 'in_invoice'` y abre la acción
+   `ypf_route.action_ypf_import_wizard`. Ver sección 10.
    - **Nota**: la acción de servidor `action_server_ypf_import_wizard`
      en `wizard/ypf_menu.xml` (con `binding_model_id`/`binding_view_types`)
      parece un mecanismo alternativo/legacy para lograr lo mismo (bindear
@@ -216,9 +218,14 @@ default ni validación que lo garantice.
 
 ## 5. Tests
 
-No existen. No hay carpeta `tests/`. Ningún test automatizado cubre:
-parsing del Excel, agrupamiento, matching de cuenta analítica por
-patente, ni la consolidación de impuestos del pie.
+- `tests/test_ypf_import_wizard.py` (desde 18.0.1.0.3): 7 tests del wizard
+  (factura balanceada, filtro de filas, modo renglón, distribución
+  analítica ponderada, impuesto faltante, sin filas válidas, editar línea
+  después de importar).
+- `tests/test_ypf_list_button.py` (19.0): 2 tours (`HttpCase`) — el botón
+  abre el wizard desde Facturas de proveedor y no aparece en Facturas de
+  cliente. Necesitan `websocket-client` en el venv; sin eso Odoo los marca
+  como *skipped* y el resumen igual dice "0 failed".
 
 ## 6. Puntos frágiles detectados (solo señalados, sin tocar)
 
@@ -237,22 +244,18 @@ patente, ni la consolidación de impuestos del pie.
    compras distinto al esperado si hay más de uno.
 5. **`invoice_date_due` no se usa** — campo del wizard que no impacta en
    la factura creada (posible bug o resto de una versión anterior).
-6. **`views/account_move_views.xml` está vacío y no listado en el
-   manifest** — archivo muerto, candidato a limpieza si alguna vez se
-   pide explícitamente.
-7. **Redundancia potencial entre el botón JS y la `ir.actions.act_window`
-   con `binding_model_id`** en `ypf_menu.xml` — no queda claro con solo
-   leer el código si ambos coexisten a propósito o si uno es vestigial;
-   confirmar con el usuario antes de tocar cualquiera de los dos.
+6. ~~`views/account_move_views.xml` muerto~~ — eliminado en 19.0.1.0.4.
+7. ~~Redundancia botón JS / acción con `binding_model_id`~~ — esa acción
+   vivía en `views/account_move_views.xml`, que nunca estuvo en el
+   manifest (nunca se cargó). Eliminada en 19.0.1.0.4.
 8. **Manejo de errores del Excel es genérico**: cualquier excepción al
    leer el archivo se envuelve en un solo `UserError` con el mensaje
    crudo de la excepción de pandas/openpyxl — no hay validación previa
    de que las columnas esperadas existan, así que un Excel con formato
    distinto puede "funcionar" pero generar una factura con importes en
    cero o mal apropiada, en vez de fallar con un mensaje claro.
-9. **Sin tests** — cualquier fix a la lógica de agrupamiento/cálculo de
-   impuestos no tiene red de seguridad automatizada; validar manualmente
-   con un Excel de ejemplo real antes de dar por bueno un cambio.
+9. ~~Sin tests~~ — ver sección 5. Igual, validar con un Excel real antes
+   de dar por bueno un cambio de cálculo.
 10. **No filtra la cuenta analítica por plan/compañía** al buscar por
     patente — riesgo bajo pero real en una DB con múltiples planes
     analíticos o multi-compañía.
@@ -454,6 +457,31 @@ parchear `_save_overrides()` en la copia local de `account_invoice_tax`
 para que **sume** (o promedie ponderado) las filas del wizard que
 comparten `tax_id`, en vez de pisarlas — o reportarlo upstream a
 ingadhoc.
+
+## 10. Migración a 19.0 (19.0.1.0.4, 2026-10-10)
+
+Política: **18.0 queda congelado** (anda en producción y el cliente se va a
+migrar a 19). Todo cambio nuevo va solo a 19.0.
+
+Estado del port: todo el código de 18.0 (hasta 18.0.1.0.3) está en 19.0
+vía cherry-pick; las APIs usadas (`is_inbound`, `_compute_amount`,
+`default_get`, `group_account_invoice`) existen en 19. Correcciones hechas
+solo en 19.0:
+
+- **Botón roto**: en 18.0 la plantilla extendía `web.ListView` para *todas*
+  las listas de `account.move`, pero el `t-on-click` llamaba a un método que
+  solo existía en `YpfListController`, y la vista que activaba ese
+  controlador (`js_class="ypf_invoice_list"`) estaba comentada → el clic
+  daba error JS. Además, usar un `js_class` propio en la lista de facturas
+  habría reemplazado `account_tree` (se perdía "Subir"). Fix: `patch()` del
+  controlador de `account` (mismo patrón que usa
+  `enterprise/l10n_in_reports` con su botón "Scan").
+- Eliminado `views/account_move_views.xml` (nunca cargado) y el bloque de
+  vista comentado en `ypf_import_wizard_view.xml`.
+- Mensajes de `UserError` traducibles con `self.env._()`; quitado el
+  import `_` sin usar.
+- Versión: `19.0.1.0.2` → `19.0.1.0.4` (la subida a `.0.3` del fix de la
+  sección 7 no se había llevado a 19.0).
 
 ## Estado general
 

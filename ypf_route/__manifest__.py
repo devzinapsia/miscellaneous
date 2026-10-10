@@ -1,6 +1,6 @@
 {
     "name": "YPF Ruta - Importación de Facturas",
-    "version": "19.0.1.0.2",
+    "version": "19.0.1.0.4",
     "category": "Accounting",
     "summary": "Importación automática de planillas YPF Ruta",
     "author": "Zinapsia",
@@ -19,6 +19,9 @@
         "web.assets_backend": [
             "ypf_route/static/src/js/ypf_list_button.js",
             "ypf_route/static/src/xml/ypf_list_button.xml",
+        ],
+        "web.assets_tests": [
+            "ypf_route/static/tests/tours/*.js",
         ],
     },
     "external_dependencies": {

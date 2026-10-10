@@ -37,15 +37,4 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>
-
-<!--     <record id="view_move_list_inherit_ypf_button" model="ir.ui.view">
-        <field name="name">account.move.list.inherit.ypf.button</field>
-        <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_in_invoice_bill_tree"/>
-        <field name="arch" type="xml">
-            <xpath expr="//list" position="attributes">
-                <attribute name="js_class">ypf_invoice_list</attribute>
-            </xpath>
-        </field>
-    </record> -->
 </odoo>

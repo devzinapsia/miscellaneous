@@ -1,7 +1,7 @@
 import io
 import base64
 import pandas as pd
-from odoo import models, fields, api, _
+from odoo import models, fields, api
 from odoo.exceptions import UserError
 
 class YpfImportWizard(models.TransientModel):
@@ -138,7 +138,7 @@ class YpfImportWizard(models.TransientModel):
             df.columns = df.columns.str.strip()
             df = df.dropna(how='all').reset_index(drop=True)
         except Exception as e:
-            raise UserError("Error al procesar el archivo Excel: %s" % str(e))
+            raise UserError(self.env._("Error al procesar el archivo Excel: %s", e))
 
         col_product = 'PRODUCTO'
         col_total = 'IMP TOT YER'
@@ -198,7 +198,7 @@ class YpfImportWizard(models.TransientModel):
                 invoice_lines.append((0, 0, vals))
 
         if not invoice_lines:
-            raise UserError("No se encontraron líneas válidas.")
+            raise UserError(self.env._("No se encontraron líneas válidas."))
 
         # 1. Crear la factura con TODOS los impuestos en las líneas
         move = self.env['account.move'].with_context(ctx).create({
