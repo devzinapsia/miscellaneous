@@ -1,6 +1,6 @@
 {
     "name": "Branding Zinapsia en el menú de aplicaciones",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "summary": "Muestra el logo de Zinapsia, el logo y nombre de la empresa "
     "activa y el contacto de soporte en el menú de aplicaciones.",
     "author": "Zinapsia",
@@ -18,5 +18,5 @@
     },
     "installable": True,
     "application": False,
-    "auto_install": True,
+    "auto_install": False,
 }

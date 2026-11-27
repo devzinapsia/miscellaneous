@@ -1,5 +1,6 @@
-No requiere configuración. El módulo se instala solo (``auto_install``) en
-toda base que tenga ``web_enterprise``.
+No requiere configuración. El módulo **no** se instala solo: hay que
+activarlo desde **Aplicaciones** en cada base donde se quiera mostrar el
+branding (requiere ``web_enterprise``).
 
 El logo de la empresa es el que figura en **Ajustes ‣ Usuarios y empresas ‣
 Empresas**, en cada empresa.

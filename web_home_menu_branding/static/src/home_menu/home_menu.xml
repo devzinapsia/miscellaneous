@@ -5,15 +5,21 @@
         <xpath expr="//div[hasclass('o_home_menu')]/div[hasclass('container')]" position="before">
             <t t-set="brandingData" t-value="homeBranding"/>
             <aside class="o_home_branding_panel o_home_branding_panel_left" aria-hidden="true">
-                <div class="o_home_branding_chip">
-                    <img class="o_home_branding_logo" t-att-src="brandingData.zinapsiaLogoUrl" alt="Zinapsia"/>
+                <div class="o_home_branding_box">
+                    <div class="o_home_branding_chip">
+                        <img class="o_home_branding_logo" t-att-src="brandingData.zinapsiaLogoUrl" alt="Zinapsia"/>
+                    </div>
                 </div>
             </aside>
             <aside t-if="brandingData.companyName" class="o_home_branding_panel o_home_branding_panel_right" aria-hidden="true">
-                <div t-if="brandingData.companyLogoUrl" class="o_home_branding_chip">
-                    <img class="o_home_branding_logo" t-att-src="brandingData.companyLogoUrl" t-att-alt="brandingData.companyName"/>
+                <div class="o_home_branding_box">
+                    <!-- Company logos usually include the company name: show the
+                         name only as a fallback when the company has no logo. -->
+                    <div t-if="brandingData.companyLogoUrl" class="o_home_branding_chip">
+                        <img class="o_home_branding_logo" t-att-src="brandingData.companyLogoUrl" t-att-alt="brandingData.companyName"/>
+                    </div>
+                    <div t-else="" class="o_home_branding_name" t-esc="brandingData.companyName"/>
                 </div>
-                <div class="o_home_branding_name" t-esc="brandingData.companyName"/>
             </aside>
         </xpath>
         <xpath expr="//div[hasclass('o_home_menu')]/div[hasclass('container')]" position="inside">

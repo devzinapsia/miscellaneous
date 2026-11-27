@@ -2,7 +2,13 @@
 // Colors are derived from the current text color so the panels follow the
 // light and dark themes (and custom home menu backgrounds) automatically.
 
+// Width of the app grid: web_enterprise's $o-home-menu-container-size
+// (home_menu.variables.scss), applied to `.o_home_menu .container` on md+.
+$o-home-branding-grid-width: 850px;
+
 .o_home_menu {
+    // Each panel spans the whole gutter between the screen edge and the app
+    // grid, so its content is centered horizontally in that gutter.
     .o_home_branding_panel {
         // Hidden on tablets and phones: there is no room beside the app grid.
         display: none;
@@ -10,26 +16,32 @@
         top: 50%;
         transform: translateY(-50%);
         z-index: 1;
+        width: calc((100vw - #{$o-home-branding-grid-width}) / 2);
+        justify-content: center;
         // Never cover or block the apps.
         pointer-events: none;
         user-select: none;
+    }
+
+    .o_home_branding_panel_left {
+        left: 0;
+    }
+
+    .o_home_branding_panel_right {
+        right: 0;
+    }
+
+    .o_home_branding_box {
+        display: flex;
         flex-direction: column;
         align-items: center;
-        gap: map-get($spacers, 2);
+        max-width: calc(100% - #{map-get($spacers, 4) * 2});
         padding: map-get($spacers, 3);
         color: inherit;
         background-color: color-mix(in srgb, currentColor 6%, transparent);
         border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
         border-radius: $border-radius-lg;
         text-align: center;
-    }
-
-    .o_home_branding_panel_left {
-        left: map-get($spacers, 4);
-    }
-
-    .o_home_branding_panel_right {
-        right: map-get($spacers, 4);
     }
 
     // White chip behind the logos, so dark logos stay visible in dark mode.
@@ -51,6 +63,7 @@
         object-fit: contain;
     }
 
+    // Fallback when the company has no logo.
     .o_home_branding_name {
         max-width: 100%;
         font-weight: $font-weight-bold;
@@ -58,15 +71,14 @@
         overflow-wrap: anywhere;
     }
 
-    // Notebooks: compact panels.
+    // Notebooks: logos up to 128px high (they shrink to fit the gutter width).
     @media (min-width: 1200px) {
         .o_home_branding_panel {
             display: flex;
-            width: 150px;
         }
 
         .o_home_branding_logo {
-            max-height: 64px;
+            max-height: 128px;
         }
 
         .o_home_branding_name {
@@ -74,18 +86,14 @@
         }
     }
 
-    // Wide screens: larger panels and logos.
+    // Wide screens: logos up to 180px high.
     @media (min-width: 1600px) {
-        .o_home_branding_panel {
-            width: 220px;
-        }
-
         .o_home_branding_logo {
-            max-height: 90px;
+            max-height: 180px;
         }
 
         .o_home_branding_name {
-            font-size: $font-size-base;
+            font-size: $font-size-lg;
         }
     }
 

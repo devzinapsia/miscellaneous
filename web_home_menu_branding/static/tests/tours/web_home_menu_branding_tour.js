@@ -8,9 +8,9 @@ registry.category("web_tour.tours").add("web_home_menu_branding_tour", {
             trigger: ".o_home_menu .o_home_branding_panel_left img.o_home_branding_logo",
         },
         {
-            content: "The active company logo and name are shown on the right panel",
+            content: "The active company logo is shown on the right panel, without its name",
             trigger:
-                ".o_home_menu .o_home_branding_panel_right:has(img.o_home_branding_logo) .o_home_branding_name:contains(Branding test with logo)",
+                ".o_home_menu .o_home_branding_panel_right:has(img.o_home_branding_logo[alt='Branding test with logo']):not(:has(.o_home_branding_name))",
         },
         {
             content: "The support footer has a mailto link",
