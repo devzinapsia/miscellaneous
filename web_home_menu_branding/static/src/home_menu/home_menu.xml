@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-inherit="web_enterprise.HomeMenu" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o_home_menu')]/div[hasclass('container')]" position="before">
+            <t t-set="brandingData" t-value="homeBranding"/>
+            <aside class="o_home_branding_panel o_home_branding_panel_left" aria-hidden="true">
+                <div class="o_home_branding_chip">
+                    <img class="o_home_branding_logo" t-att-src="brandingData.zinapsiaLogoUrl" alt="Zinapsia"/>
+                </div>
+            </aside>
+            <aside t-if="brandingData.companyName" class="o_home_branding_panel o_home_branding_panel_right" aria-hidden="true">
+                <div t-if="brandingData.companyLogoUrl" class="o_home_branding_chip">
+                    <img class="o_home_branding_logo" t-att-src="brandingData.companyLogoUrl" t-att-alt="brandingData.companyName"/>
+                </div>
+                <div class="o_home_branding_name" t-esc="brandingData.companyName"/>
+            </aside>
+        </xpath>
+        <xpath expr="//div[hasclass('o_home_menu')]/div[hasclass('container')]" position="inside">
+            <footer class="o_home_branding_footer text-center">
+                If you have any question or problem, send an email to
+                <a t-attf-href="mailto:{{ brandingData.supportEmail }}" t-esc="brandingData.supportEmail"/>
+            </footer>
+        </xpath>
+    </t>
+
+</templates>

@@ -8,6 +8,7 @@ Este repositorio contiene una colección de módulos y herramientas para **Odoo 
 | :--- | :--- | :--- |
 | [**ypf_route**](./ypf_route) | Importación automática de facturas desde planillas de YPF Ruta. | ✅ Estable |
 | [**web_company_switcher_color**](./web_company_switcher_color) | Color de empresa activa: pinta el selector de empresas con el color de cada empresa. | ✅ Estable |
+| [**web_home_menu_branding**](./web_home_menu_branding) | Branding Zinapsia en el menú de aplicaciones: logo de Zinapsia, logo y nombre de la empresa activa y correo de soporte (requiere Enterprise). | ✅ Estable |
 | *Próximamente* | *Nuevas herramientas en desarrollo...* | 🛠️ |
 
 ## 🛠️ Instalación General

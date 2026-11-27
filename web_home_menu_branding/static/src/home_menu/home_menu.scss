@@ -1,0 +1,105 @@
+// Zinapsia / active company branding on the home menu.
+// Colors are derived from the current text color so the panels follow the
+// light and dark themes (and custom home menu backgrounds) automatically.
+
+.o_home_menu {
+    .o_home_branding_panel {
+        // Hidden on tablets and phones: there is no room beside the app grid.
+        display: none;
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+        // Never cover or block the apps.
+        pointer-events: none;
+        user-select: none;
+        flex-direction: column;
+        align-items: center;
+        gap: map-get($spacers, 2);
+        padding: map-get($spacers, 3);
+        color: inherit;
+        background-color: color-mix(in srgb, currentColor 6%, transparent);
+        border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+        border-radius: $border-radius-lg;
+        text-align: center;
+    }
+
+    .o_home_branding_panel_left {
+        left: map-get($spacers, 4);
+    }
+
+    .o_home_branding_panel_right {
+        right: map-get($spacers, 4);
+    }
+
+    // White chip behind the logos, so dark logos stay visible in dark mode.
+    .o_home_branding_chip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        padding: map-get($spacers, 2);
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: $border-radius;
+    }
+
+    .o_home_branding_logo {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .o_home_branding_name {
+        max-width: 100%;
+        font-weight: $font-weight-bold;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+
+    // Notebooks: compact panels.
+    @media (min-width: 1200px) {
+        .o_home_branding_panel {
+            display: flex;
+            width: 150px;
+        }
+
+        .o_home_branding_logo {
+            max-height: 64px;
+        }
+
+        .o_home_branding_name {
+            font-size: $font-size-sm;
+        }
+    }
+
+    // Wide screens: larger panels and logos.
+    @media (min-width: 1600px) {
+        .o_home_branding_panel {
+            width: 220px;
+        }
+
+        .o_home_branding_logo {
+            max-height: 90px;
+        }
+
+        .o_home_branding_name {
+            font-size: $font-size-base;
+        }
+    }
+
+    .o_home_branding_footer {
+        margin: map-get($spacers, 4) 0 map-get($spacers, 3);
+        padding: 0 map-get($spacers, 2);
+        font-size: $font-size-sm;
+        color: inherit;
+        opacity: 0.8;
+        // Long e-mail addresses may wrap instead of widening the page.
+        overflow-wrap: anywhere;
+
+        a {
+            font-weight: $font-weight-bold;
+        }
+    }
+}
